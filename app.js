@@ -21,7 +21,8 @@ app.use(session({
     cookieName: 'session',
     secret: process.env.SECRET_KEY,
     duration: 30 * 60 * 1000,
-    activeDuration: 5 * 60 * 1000
+    activeDuration: 5 * 60 * 1000,
+    httpOnly: true
 }));
 
 app.use(middleware.checkForSession);

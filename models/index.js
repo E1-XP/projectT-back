@@ -9,3 +9,4 @@ mongoose.connect('mongodb://e1xp:admin@ds255958.mlab.com:55958/auth', {
 });
 
 module.exports.User = require('./user');
+module.exports.TimeEntry = require('./entry');

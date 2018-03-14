@@ -18,11 +18,16 @@ const UserSchema = new mongoose.Schema({
     },
     avatar: {
         type: String
-    }
+    },
+    entries: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'TimeEntry'
+    }]
 })
 
 UserSchema.pre('save', function (next) {
     const user = this;
+    if (!user.isModified('password')) return next();
 
     bcrypt.hash(user.password, 10).then(function (securedPass) {
         user.password = securedPass;
