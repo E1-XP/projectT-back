@@ -19,6 +19,11 @@ const UserSchema = new mongoose.Schema({
     avatar: {
         type: String
     },
+    projects: [{
+        name: String,
+        color: String,
+        client: String
+    }],
     entries: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'TimeEntry'
