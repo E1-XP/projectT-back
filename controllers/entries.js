@@ -9,8 +9,8 @@ exports.all = function (req, res) {
 
 exports.new = function (req, res) {
     const { userid } = req.params;
-    //const {description}=req.query;
-    const entry = Object.assign(req.body, { userId: userid }, req.query);
+
+    const entry = Object.assign({}, req.body, { userId: userid }, req.query);
 
     db.TimeEntry.create(entry).then(function (createdEntry) {
         db.User.findById(req.params.userid).then(function (user) {

@@ -11,7 +11,7 @@ const db = require('./models');
 const routes = require('./routes');
 const middleware = require('./middleware');
 
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 app.use(cors({
     origin: `http://localhost:8080`,
     credentials: true
@@ -20,9 +20,19 @@ app.use(cors({
 app.use(session({
     cookieName: 'session',
     secret: process.env.SECRET_KEY,
-    duration: 30 * 60 * 1000,
-    activeDuration: 5 * 60 * 1000,
-    httpOnly: true
+    cookie: {
+        ephemeral: true,
+        httpOnly: true
+    }
+}));
+
+app.use(session({
+    cookieName: 'persistentSession',
+    secret: process.env.SECRET_KEY,
+    duration: 180 * 24 * 60 * 60 * 1000,
+    cookie: {
+        httpOnly: true
+    }
 }));
 
 app.use(middleware.checkForSession);

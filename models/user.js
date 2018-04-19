@@ -5,7 +5,8 @@ const UserSchema = new mongoose.Schema({
     email: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        lowercase: true
     },
     username: {
         type: String,
@@ -28,7 +29,7 @@ const UserSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'TimeEntry'
     }]
-})
+});
 
 UserSchema.pre('save', function (next) {
     const user = this;

@@ -1,10 +1,12 @@
 const db = require('../models');
 
 exports.checkForSession = function (req, res, next) {
-    if (req.session && req.session.user) {
-        const { email } = req.session.user;
+    if (req.session && req.session.user ||
+        req.persistentSesion && req.persistentSesion.user) {
 
-        db.User.findOne({ email }).then(user => {
+        const { _id } = req.session.user;
+
+        db.User.findOne({ _id }).then(user => {
             if (user) {
                 req.user = user;
                 delete req.user.password;

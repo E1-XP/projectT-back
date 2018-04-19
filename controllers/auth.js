@@ -6,7 +6,7 @@ exports.signup = function (req, res) {
     const userData = { email, username, password }
 
     db.User.create(userData).then(user => {
-        req.session.user = user.email;
+        req.session.user = user._id;
 
         const data = Object.keys(user._doc).reduce((acc, key, i, arr) => {
             (key !== 'password') ? acc[key] = user._doc[key] : null;
@@ -22,13 +22,14 @@ exports.signup = function (req, res) {
 }
 
 exports.login = function (req, res) {
-    const { email, password } = req.body;
+    const { email, password, persistentSession } = req.body;
 
     db.User.findOne({ email }).then(user => {
         if (!user) res.status(401).json({ "message": "user/password combination not found" });
         else {
             if (bcrypt.compareSync(password, user.password)) {
-                req.session.user = user.email;
+                persistentSession ?
+                    req.persistentSession.user = user._id : req.session.user = user._id;
 
                 populateEntries(user).then(data => res.status(200).json(data))
                     .catch(err => console.log(err));
@@ -39,24 +40,29 @@ exports.login = function (req, res) {
 }
 
 exports.logout = function (req, res) {
-    req.session.reset();
+    if (req.session) req.session.reset();
+    if (req.persistentSession) req.persistentSession.reset();
     res.status(200).json({ "message": "success" });
 }
 
 exports.refresh = function (req, res) {
-    if (req.session.user) {
+    if (req.session.user || req.persistentSession.user) {
+        const sessionData = req.session.user ?
+            req.session.user : req.persistentSession.user;
 
-        db.User.findOne({ email: req.session.user }).then(user => {
+        db.User.findById(sessionData).then(function (user) {
+            if (!user) return res.status(401).json({ "message": "user/password combination not found" });
+
             populateEntries(user).then(data => res.status(200).json(data))
                 .catch(err => console.log(err));
         });
     }
-    else res.status(401).json({ "message": "internal server error" });
+    else res.status(401).json({ "message": "user/password combination not found" });
 }
 
 function populateEntries(user) {
     return new Promise(function (res, rej) {
-        db.TimeEntry.find({ userId: user.id }).then(foundEntries => {
+        db.TimeEntry.find({ userId: user._id }).then(foundEntries => {
             user.entries = foundEntries;
 
             const data = Object.keys(user._doc).reduce((acc, key) => {
