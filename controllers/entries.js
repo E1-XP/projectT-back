@@ -9,7 +9,6 @@ exports.all = function (req, res) {
 
 exports.new = function (req, res) {
     const { userid } = req.params;
-
     const entry = Object.assign({}, req.body, { userId: userid }, req.query);
 
     db.TimeEntry.create(entry).then(function (createdEntry) {

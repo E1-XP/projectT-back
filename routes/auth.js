@@ -1,4 +1,4 @@
-const router = require('express').Router();
+const router = require('express').Router({ mergeParams: true });
 const auth = require('../controllers/auth');
 
 router.post('/signup', auth.signup);
