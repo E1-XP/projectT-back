@@ -10,11 +10,16 @@ exports.upload = function (req, res) {
     const form = new formidable.IncomingForm();
     const dir = path.join(__dirname + `/../public/uploads/${userid}`);
 
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(__dirname + `/../public/uploads`);
+        fs.mkdirSync(__dirname + `/../public/uploads/${userid}`);
+    }
+
     //remove previous avatars
     fs.readdir(dir, (err, files) => {
         if (err) console.log(err);
 
-        for (const file of files) {
+        if (files) for (const file of files) {
             fs.unlink(path.join(dir, file), err => {
                 if (err) console.log(err);
             });
@@ -25,10 +30,6 @@ exports.upload = function (req, res) {
 
     form.on('fileBegin', function (name, file) {
         file.path = __dirname + `/../public/uploads/${userid}/${file.name}`;
-
-        if (fs.existsSync(dir)) fs.mkdir(`public/uploads/${userid}`, (function (err) {
-            console.log(err);
-        }));
     });
 
     form.on('file', function (name, file) {
