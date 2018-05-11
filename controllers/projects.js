@@ -12,9 +12,13 @@ exports.new = function (req, res) {
 
         user.save().then(function () {
 
-            db.User.findById(userid).then(function (user) {
-                res.status(200).json(user);
-            })
+            db.User.findById(userid)
+                .populate('entries')
+                .exec((err, user) => {
+                    if (err) res.status(400).json({ "message": "internal server error" });
+                    res.status(200).json(user);
+                });
+
         }).catch(err => res.status(400).json({ "message": "internal server error" }));
 
     }).catch(err => res.status(400).json({ "message": "internal server error" }));
@@ -29,6 +33,7 @@ exports.remove = async function (req, res) {
         user.projects = projects.filter(itm => name.indexOf(itm.name) === -1);
 
         user.save().then(function () {
+            //remove project field from entries
             db.TimeEntry.find({ userId: user.id }).then(async function (foundEntries) {
                 const toUpdate = foundEntries.filter(itm => name.indexOf(itm) === -1);
 
@@ -38,8 +43,12 @@ exports.remove = async function (req, res) {
                 }));
 
                 await Promise.all(promiseAr).then(function () {
-                    db.User.findById(userid).then(user =>
-                        res.status(200).json(user));
+                    db.User.findById(userid)
+                        .populate('entries')
+                        .exec((err, user) => {
+                            if (err) res.status(400).json({ "message": "internal server error" });
+                            res.status(200).json(user);
+                        });
 
                 }).catch(err => res.status(400).json({ "message": "internal server error" }));
             });

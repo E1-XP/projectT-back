@@ -18,7 +18,7 @@ const TimeEntrySchema = new mongoose.Schema({
         ref: 'User',
         required: true
     }
-}, { timestamps: true })
+});
 
 TimeEntrySchema.pre('remove', function (next) {
     User.findById(this.userId).then(user => {

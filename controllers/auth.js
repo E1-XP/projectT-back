@@ -1,5 +1,6 @@
 const db = require('../models'),
-    bcrypt = require('bcrypt');
+    bcrypt = require('bcrypt'),
+    getDayOfYear = require('date-fns/get_day_of_year');
 
 exports.signup = function (req, res) {
     const { email, username, password } = req.body;
@@ -14,6 +15,7 @@ exports.signup = function (req, res) {
         }, {});
 
         res.status(200).json(data);
+
     }).catch(err => {
         console.log(err);
         if (err.code === 11000) res.status(401).json({ "message": "user with same email or/and username already exist" });
@@ -31,7 +33,9 @@ exports.login = function (req, res) {
                 persistentSession ?
                     req.persistentSession.user = user._id : req.session.user = user._id;
 
-                populateEntries(user).then(data => res.status(200).json(data))
+                populateEntries(user)
+                    .then(data => Object.assign({}, data, { entries: entriesFilter(data.entries) }))
+                    .then(filteredData => res.status(200).json(filteredData))
                     .catch(err => console.log(err));
             }
             else res.status(401).json({ "message": "user/password combination not found" });
@@ -53,7 +57,9 @@ exports.refresh = function (req, res) {
         db.User.findById(sessionData).then(function (user) {
             if (!user) return res.status(401).json({ "message": "user/password combination not found" });
 
-            populateEntries(user).then(data => res.status(200).json(data))
+            populateEntries(user)
+                .then(data => Object.assign({}, data, { entries: entriesFilter(data.entries) }))
+                .then(filteredData => res.status(200).json(filteredData))
                 .catch(err => console.log(err));
         });
     }
@@ -62,15 +68,37 @@ exports.refresh = function (req, res) {
 
 function populateEntries(user) {
     return new Promise(function (res, rej) {
-        db.TimeEntry.find({ userId: user._id }).then(foundEntries => {
+        db.TimeEntry.find({ userId: user._id }).sort({ start: 'desc' }).then(foundEntries => {
             user.entries = foundEntries;
 
             const data = Object.keys(user._doc).reduce((acc, key) => {
-                (key !== 'password') ? acc[key] = user._doc[key] : null;
+                if (key !== 'password') acc[key] = user._doc[key];
                 return acc;
             }, {});
 
             res(data);
         });
     });
+}
+
+function entriesFilter(entriesArr) {
+    if (!entriesArr.length) return entriesArr;
+
+    const filtered = [];
+    let startDate = getDayOfYear(entriesArr[0].start);
+    let i = 0;
+
+    entriesArr.some(itm => {
+        const thisDay = getDayOfYear(itm.start);
+
+        if (thisDay !== startDate) {
+            i += 1;
+            startDate = thisDay;
+        }
+        filtered.push(itm);
+
+        return (i < 10) ? false : true;
+    });
+
+    return filtered;
 }

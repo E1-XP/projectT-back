@@ -29,13 +29,15 @@ app.use(session({
 app.use(session({
     cookieName: 'persistentSession',
     secret: process.env.SECRET_KEY,
-    duration: 180 * 24 * 60 * 60 * 1000,
+    duration: 180 * 24 * 60 * 60 * 1000, //6months
     cookie: {
         httpOnly: true
     }
 }));
 
 app.use(middleware.checkForSession);
+
+app.use(express.static('public'));
 
 app.use('/', routes);
 
