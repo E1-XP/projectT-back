@@ -3,10 +3,10 @@ const entries = require('../controllers/entries');
 
 router.get('/', entries.all);
 
-router.post('/new', entries.new);
+router.post('/', entries.new);
 
-router.post('/:entryid/update', entries.update);
+router.put('/:entryid/', entries.update);
 
-router.post('/:entryid/delete', entries.delete);
+router.delete('/:entryid/', entries.delete);
 
 module.exports = router;

@@ -1,6 +1,6 @@
 const router = require('express').Router({ mergeParams: true });
-// const db = require('../models');
-//const middleware = require('../middleware');
+const middleware = require('../middleware');
+
 const authRoutes = require('./auth');
 const entriesRoutes = require('./entries');
 const projectsRoutes = require('./projects');
@@ -12,10 +12,10 @@ router.get('/', (req, res) => {
 
 router.use('/auth', authRoutes);
 
-router.use('/users/:userid', userRoutes);
+router.use('/users/:userid', middleware.loginRequired, userRoutes);
 
-router.use('/users/:userid/entries', entriesRoutes);
+router.use('/users/:userid/entries', middleware.loginRequired, entriesRoutes);
 
-router.use('/users/:userid/projects', projectsRoutes);
+router.use('/users/:userid/projects', middleware.loginRequired, projectsRoutes);
 
 module.exports = router;

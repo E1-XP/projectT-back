@@ -50,7 +50,7 @@ exports.upload = function (req, res) {
     });
 }
 
-exports.editpassword = function (req, res) {
+exports.editPassword = function (req, res) {
     const { userid } = req.params;
     const { current, newpass } = req.body;
 
@@ -74,7 +74,7 @@ exports.editpassword = function (req, res) {
     }).catch(err => console.log(err));
 }
 
-exports.edituserdata = function (req, res) {
+exports.editUserData = function (req, res) {
     const { userid } = req.params;
 
     db.User.findById(userid).then(user => {

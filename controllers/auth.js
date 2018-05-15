@@ -27,6 +27,7 @@ exports.login = function (req, res) {
     const { email, password, persistentSession } = req.body;
 
     db.User.findOne({ email }).then(user => {
+
         if (!user) res.status(401).json({ "message": "user/password combination not found" });
         else {
             if (bcrypt.compareSync(password, user.password)) {
@@ -38,6 +39,7 @@ exports.login = function (req, res) {
                     .then(filteredData => res.status(200).json(filteredData))
                     .catch(err => console.log(err));
             }
+
             else res.status(401).json({ "message": "user/password combination not found" });
         }
     }).catch(err => res.status(400).json({ "message": "internal server error" }));
