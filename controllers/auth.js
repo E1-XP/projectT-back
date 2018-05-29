@@ -1,10 +1,13 @@
 const db = require('../models'),
     bcrypt = require('bcrypt'),
+    { check, validationResult } = require('express-validator/check'),
     getDayOfYear = require('date-fns/get_day_of_year');
 
 exports.signup = function (req, res) {
     const { email, username, password } = req.body;
     const userData = { email, username, password }
+
+    if (!validate(req.body)) return res.status(401).json({ 'message': 'invalid data provided' });
 
     db.User.create(userData).then(user => {
         req.session.user = user._id;
@@ -25,6 +28,8 @@ exports.signup = function (req, res) {
 
 exports.login = function (req, res) {
     const { email, password, persistentSession } = req.body;
+
+    if (!validate(req.body)) return res.status(401).json({ 'message': 'invalid data provided' });
 
     db.User.findOne({ email }).then(user => {
 
@@ -83,6 +88,18 @@ function populateEntries(user) {
     });
 }
 
+function validate(obj) {
+    const emailRegExp = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    const usernameRegExp = /^([a-zA-Z0-9_-]){2,32}$/;
+    const passwordRegExp = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z]{8,}$/;
+
+    if (obj['email'] && !new RegExp(emailRegExp).test(obj.email)) return false;
+    if (obj['username'] && !new RegExp(usernameRegExp).test(obj.username)) return false;
+    if (obj['password'] && !new RegExp(passwordRegExp).test(obj.password)) return false;
+
+    return true;
+}
+
 function entriesFilter(entriesArr) {
     if (!entriesArr.length) return entriesArr;
 
@@ -91,15 +108,17 @@ function entriesFilter(entriesArr) {
     let i = 0;
 
     entriesArr.some(itm => {
-        const thisDay = getDayOfYear(itm.start);
+        const itmDay = getDayOfYear(itm.start);
 
-        if (thisDay !== startDate) {
+        if (itmDay !== startDate) {
             i += 1;
-            startDate = thisDay;
+            startDate = itmDay;
         }
-        filtered.push(itm);
 
-        return (i < 10) ? false : true;
+        if (i > 9) return true;
+        if (i <= 9) filtered.push(itm);
+
+        return false;
     });
 
     return filtered;

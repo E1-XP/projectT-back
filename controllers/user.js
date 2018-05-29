@@ -11,7 +11,6 @@ exports.upload = function (req, res) {
     const dir = path.join(__dirname + `/../public/uploads/${userid}`);
 
     if (!fs.existsSync(dir)) {
-        fs.mkdirSync(__dirname + `/../public/uploads`);
         fs.mkdirSync(__dirname + `/../public/uploads/${userid}`);
     }
 
@@ -78,9 +77,14 @@ exports.editUserData = function (req, res) {
     const { userid } = req.params;
 
     db.User.findById(userid).then(user => {
-        if (req.body.email !== user.email) user.email = req.body.email;
-        if (req.body.username !== user.username) user.username = req.body.username;
+        if (req.body.email && req.body.email !== user.email) user.email = req.body.email;
+        if (req.body.username && req.body.username !== user.username) user.username = req.body.username;
+        if (req.body.avatar === '') {
+            user.avatar = req.body.avatar;
+            removeDir(__dirname + `/../public/uploads/` + userid);
+        }
         user.settings = req.body.settings;
+
 
         user.save().then(() => {
             const userObj = {};
@@ -93,4 +97,18 @@ exports.editUserData = function (req, res) {
         }).catch(err => console.log(err));
 
     }).catch(err => console.log(err));
+}
+
+function removeDir(dir_path) {
+    if (fs.existsSync(dir_path)) {
+        fs.readdirSync(dir_path).forEach(function (entry) {
+            var entry_path = path.join(dir_path, entry);
+            if (fs.lstatSync(entry_path).isDirectory()) {
+                removeDir(entry_path);
+            } else {
+                fs.unlinkSync(entry_path);
+            }
+        });
+        fs.rmdirSync(dir_path);
+    }
 }

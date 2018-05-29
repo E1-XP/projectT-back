@@ -4,7 +4,7 @@ const db = require('../models'),
 
 exports.all = function (req, res) {
     const { userid } = req.params;
-    const { begin, end } = req.query;
+    let { begin, end } = req.query;
 
     db.TimeEntry.find({ userId: userid }).sort({ start: 'desc' })
         .then(foundEntries => res.status(200).json(entriesFilter(foundEntries)));
@@ -17,15 +17,24 @@ exports.all = function (req, res) {
         let i = 0;
 
         entriesArr.some(itm => {
-            const thisDay = getDayOfYear(itm.start);
+            const itmDay = getDayOfYear(itm.start);
 
-            if (thisDay !== startDate && thisDay < startDate) {
-                i += 1;
-                startDate = thisDay;
+            if (end) {
+                itmDay <= begin && itmDay >= end && filtered.push(itm);
+
+                return (itmDay >= end) ? false : true;
             }
-            thisDay < begin && filtered.push(itm);
+            else {
+                if (itmDay !== startDate && itmDay < startDate) {
+                    i += 1;
+                    startDate = itmDay;
+                }
+                if (i > 10) return true;
 
-            return (i < (end || 10)) ? false : true;
+                itmDay < begin && filtered.push(itm);
+
+                return false;
+            }
         });
 
         return filtered;
@@ -42,7 +51,7 @@ exports.new = function (req, res) {
 
             user.save().then(savedUser => res.status(200).json(createdEntry))
                 .catch(err => console.log(err));
-        })
+        });
 
     }).catch(err => console.log(err));
 }

@@ -12,12 +12,16 @@ exports.new = function (req, res) {
 
         user.save().then(function () {
 
-            db.User.findById(userid)
-                .populate('entries')
-                .exec((err, user) => {
-                    if (err) res.status(400).json({ "message": "internal server error" });
-                    res.status(200).json(user);
-                });
+            db.User.findById(userid).then(user => {
+                const data = Object.keys(user._doc).reduce((acc, key) => {
+                    (key !== 'password' && key !== 'entries') ?
+                        acc[key] = user._doc[key] : null;
+                    return acc;
+                }, {});
+
+                res.status(200).json(data);
+
+            }).catch(err => res.status(400).json({ "message": "internal server error" }));
 
         }).catch(err => res.status(400).json({ "message": "internal server error" }));
 
@@ -26,32 +30,34 @@ exports.new = function (req, res) {
 
 exports.remove = async function (req, res) {
     const { userid } = req.params;
-    let name = JSON.parse(req.query.name);
+    const nameArr = JSON.parse(req.query.name);
 
     db.User.findById(userid).then(function (user) {
-        let projects = user.projects.length ? user.projects.slice() : [];
-        user.projects = projects.filter(itm => name.indexOf(itm.name) === -1);
+        const projects = user.projects.length ? user.projects.slice() : [];
+        user.projects = projects.filter(itm => nameArr.indexOf(itm.name) === -1);
 
         user.save().then(function () {
             //remove project field from entries
-            db.TimeEntry.find({ userId: user.id }).then(async function (foundEntries) {
-                const toUpdate = foundEntries.filter(itm => name.indexOf(itm) === -1);
+            db.TimeEntry.find({ userId: user.id })
+                .then(async function (foundEntries) {
 
-                const promiseAr = toUpdate.map(itm => new Promise(function (res, rej) {
-                    db.TimeEntry.update({ userId: itm._id }, { $set: { project: '' } })
-                        .then(updated => res());
-                }));
+                    const toUpdate = foundEntries.filter(itm => nameArr.indexOf(itm.project) !== -1);
 
-                await Promise.all(promiseAr).then(function () {
-                    db.User.findById(userid)
-                        .populate('entries')
-                        .exec((err, user) => {
-                            if (err) res.status(400).json({ "message": "internal server error" });
-                            res.status(200).json(user);
-                        });
+                    const promiseArr = toUpdate.map(itm => new Promise(function (res, rej) {
+                        db.TimeEntry.update({ _id: itm._id }, { $set: { project: '' } })
+                            .then(updated => res(updated));
+                    }));
 
-                }).catch(err => res.status(400).json({ "message": "internal server error" }));
-            });
+                    await Promise.all(promiseArr).then(function () {
+                        db.User.findById(userid)
+                            .populate('entries')
+                            .exec((err, user) => {
+                                if (err) res.status(400).json({ "message": "internal server error" });
+                                res.status(200).json(user);
+                            });
+
+                    }).catch(err => res.status(400).json({ "message": "internal server error" }));
+                });
         });
 
     }).catch(err => res.status(400).json({ "message": "internal server error" }));
