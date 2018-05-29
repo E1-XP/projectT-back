@@ -1,6 +1,5 @@
 const db = require('../models'),
     bcrypt = require('bcrypt'),
-    { check, validationResult } = require('express-validator/check'),
     getDayOfYear = require('date-fns/get_day_of_year');
 
 exports.signup = function (req, res) {
