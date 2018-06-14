@@ -34,7 +34,7 @@ exports.upload = function (req, res) {
     form.on('file', function (name, file) {
 
         db.User.findById(userid).then(user => {
-            user.avatar = `http://localhost:3001/uploads/${userid}/${file.name}`;
+            user.avatar = `https://project--t.herokuapp.com/uploads/${userid}/${file.name}`;
 
             user.save().then(() => {
                 const userObj = {};
