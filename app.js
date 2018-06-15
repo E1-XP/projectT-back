@@ -4,6 +4,7 @@ const express = require('express'),
     app = express(),
     session = require('client-sessions'),
     bodyParser = require('body-parser'),
+    compression = require('compression'),
     cors = require('cors'),
     PORT = process.env.PORT || 3001;
 
@@ -36,6 +37,8 @@ app.use(session({
 }));
 
 app.use(middleware.checkForSession);
+
+app.use(compression());
 
 app.use(express.static('public'));
 
