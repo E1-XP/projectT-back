@@ -6,7 +6,9 @@ exports.all = function (req, res) {
     const { userid } = req.params;
     let { begin, end } = req.query;
 
-    db.TimeEntry.find({ userId: userid }).sort({ start: 'desc' })
+    db.TimeEntry
+        .find({ userId: userid })
+        .sort({ start: 'desc' })
         .then(foundEntries => res.status(200).json(entriesFilter(foundEntries)));
 
     function entriesFilter(entriesArr) {
@@ -25,7 +27,7 @@ exports.all = function (req, res) {
                 return (itmDay >= end) ? false : true;
             }
             else {
-                if (itmDay !== startDate && itmDay < startDate) {
+                if (itm.stop && itmDay !== startDate && itmDay < startDate) {
                     i += 1;
                     startDate = itmDay;
                 }
@@ -45,15 +47,17 @@ exports.new = function (req, res) {
     const { userid } = req.params;
     const entry = Object.assign({}, req.body, { userId: userid }, req.query);
 
-    db.TimeEntry.create(entry).then(function (createdEntry) {
-        db.User.findById(req.params.userid).then(function (user) {
-            user.entries.push(createdEntry.id);
+    db.TimeEntry.create(entry)
+        .then(function (createdEntry) {
+            db.User.findById(req.params.userid)
+                .then(function (user) {
+                    user.entries.push(createdEntry.id);
 
-            user.save().then(savedUser => res.status(200).json(createdEntry))
-                .catch(err => console.log(err));
-        });
+                    user.save().then(savedUser => res.status(200).json(createdEntry))
+                        .catch(err => console.log(err));
+                });
 
-    }).catch(err => console.log(err));
+        }).catch(err => console.log(err));
 }
 
 exports.update = async function (req, res) {

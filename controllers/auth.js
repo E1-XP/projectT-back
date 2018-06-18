@@ -103,13 +103,14 @@ function entriesFilter(entriesArr) {
     if (!entriesArr.length) return entriesArr;
 
     const filtered = [];
-    let startDate = getDayOfYear(entriesArr[0].start);
+    const firstEntryWithStopTime = entriesArr.find(itm => !!itm.stop);
+    let startDate = getDayOfYear(firstEntryWithStopTime.start);
     let i = 0;
 
     entriesArr.some(itm => {
         const itmDay = getDayOfYear(itm.start);
 
-        if (itmDay !== startDate) {
+        if (itm.stop && itmDay !== startDate) {
             i += 1;
             startDate = itmDay;
         }
