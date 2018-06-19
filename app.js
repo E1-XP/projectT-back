@@ -14,7 +14,7 @@ const middleware = require('./middleware');
 
 app.use(bodyParser.json());
 app.use(cors({
-    origin: `http://localhost:8080`,
+    origin: 'https://project--t.herokuapp.com',
     credentials: true
 }));
 
