@@ -4,7 +4,7 @@ const db = require('../models'),
 
 exports.signup = function (req, res) {
     const { email, username, password } = req.body;
-    const userData = { email, username, password }
+    const userData = { email, username, password };
 
     if (!validate(req.body)) return res.status(401).json({ 'message': 'invalid data provided' });
 
@@ -20,7 +20,7 @@ exports.signup = function (req, res) {
 
     }).catch(err => {
         console.log(err);
-        if (err.code === 11000) res.status(401).json({ "message": "user with same email or/and username already exist" });
+        if (err.code === 11000) res.status(409).json({ "message": "user with same email or/and username already exist" });
         else res.status(400).json({ "message": "internal server error" });
     });
 }
