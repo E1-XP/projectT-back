@@ -6,7 +6,8 @@ const express = require('express'),
     bodyParser = require('body-parser'),
     compression = require('compression'),
     cors = require('cors'),
-    PORT = process.env.PORT || 3001;
+    PORT = process.env.PORT || 3001,
+    ORIGIN_URL = 'http://localhost:8080';//'https://project--t-front.herokuapp.com';
 
 const db = require('./models');
 const routes = require('./routes');
@@ -14,7 +15,7 @@ const middleware = require('./middleware');
 
 app.use(bodyParser.json());
 app.use(cors({
-    origin: 'https://project--t-front.herokuapp.com',
+    origin: ORIGIN_URL,
     credentials: true
 }));
 

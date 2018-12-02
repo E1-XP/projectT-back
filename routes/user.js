@@ -5,6 +5,6 @@ router.put('/', userRoutes.editUserData);
 
 router.put('/avatar', userRoutes.upload);
 
-router.put('/passwordedit', userRoutes.editPassword);
+router.put('/password', userRoutes.editPassword);
 
 module.exports = router;

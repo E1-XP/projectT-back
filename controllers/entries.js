@@ -1,45 +1,31 @@
 const db = require('../models'),
-    mongoose = require('mongoose'),
-    getDayOfYear = require('date-fns/get_day_of_year');
+    mongoose = require('mongoose');
+
+const filterEntries = require('./../services/filterEntries');
 
 exports.all = function (req, res) {
     const { userid } = req.params;
-    let { begin, end } = req.query;
+    const { begin, end, days } = req.query;
 
-    db.TimeEntry
-        .find({ userId: userid })
-        .sort({ start: 'desc' })
-        .then(foundEntries => res.status(200).json(entriesFilter(foundEntries)));
-
-    function entriesFilter(entriesArr) {
-        if (!begin) return entriesArr;
-
-        const filtered = [];
-        let startDate = begin;
-        let i = 0;
-
-        entriesArr.some(itm => {
-            const itmDay = getDayOfYear(itm.start);
-
-            if (end) {
-                itmDay <= begin && itmDay >= end && filtered.push(itm);
-
-                return (itmDay >= end) ? false : true;
-            }
-            else {
-                if (itm.stop && itmDay !== startDate && itmDay < startDate) {
-                    i += 1;
-                    startDate = itmDay;
+    if (begin && end) {
+        db.TimeEntry
+            .find({
+                userId: userid,
+                start: {
+                    $lte: Number(begin),
+                    $gte: Number(end)
                 }
-                if (i > 10) return true;
-
-                itmDay < begin && filtered.push(itm);
-
-                return false;
-            }
-        });
-
-        return filtered;
+            })
+            .sort({ start: 'desc' })
+            .then(foundEntries => res.status(200).json(foundEntries));
+    }
+    else {
+        db.TimeEntry
+            .find({ userId: userid })
+            .sort({ start: 'desc' })
+            .then(foundEntries =>
+                res.status(200)
+                    .json(filterEntries(foundEntries, Number(begin), Number(end), Number(days))));
     }
 }
 
@@ -60,7 +46,7 @@ exports.new = function (req, res) {
         }).catch(err => console.log(err));
 }
 
-exports.update = async function (req, res) {
+exports.update = function (req, res) {
     const { entryid, userid } = req.params;
 
     if (entryid.length === 24) {
@@ -79,14 +65,14 @@ exports.update = async function (req, res) {
 
         const idArr = JSON.parse(entryid).map(itm => new mongoose.Types.ObjectId(itm));
 
-        await Promise.all(prArr).then(function () {
+        Promise.all(prArr).then(function () {
             db.TimeEntry.find({ _id: { $in: idArr } })
                 .then(foundEntries => res.status(200).json(foundEntries));
         }).catch(err => console.log(err));
     }
 }
 
-exports.delete = async function (req, res) {
+exports.delete = function (req, res) {
     const { userid, entryid } = req.params;
 
     if (entryid.length === 24) {
@@ -101,7 +87,7 @@ exports.delete = async function (req, res) {
                 db.TimeEntry.findByIdAndRemove(item)
                     .then(item => res())));
 
-        await Promise.all(prArr).then(() => {
+        Promise.all(prArr).then(() => {
             res.status(200).json(JSON.parse(entryid));
         }).catch(err => console.log(err));
     }

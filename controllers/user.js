@@ -99,16 +99,18 @@ exports.editUserData = function (req, res) {
     }).catch(err => console.log(err));
 }
 
-function removeDir(dir_path) {
-    if (fs.existsSync(dir_path)) {
-        fs.readdirSync(dir_path).forEach(function (entry) {
-            var entry_path = path.join(dir_path, entry);
-            if (fs.lstatSync(entry_path).isDirectory()) {
-                removeDir(entry_path);
+function removeDir(dirPath) {
+    if (fs.existsSync(dirPath)) {
+        fs.readdirSync(dirPath).forEach(function (entry) {
+            const entryPath = path.join(dirPath, entry);
+
+            if (fs.lstatSync(entryPath).isDirectory()) {
+                removeDir(entryPath);
             } else {
-                fs.unlinkSync(entry_path);
+                fs.unlinkSync(entryPath);
             }
         });
-        fs.rmdirSync(dir_path);
+
+        fs.rmdirSync(dirPath);
     }
 }
