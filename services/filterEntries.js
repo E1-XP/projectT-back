@@ -1,7 +1,7 @@
 const getDayOfYear = require('date-fns/get_day_of_year');
 
 module.exports = function filterEntries(entriesArr, begin, end, dayCount = 10) {
-    if (!begin && !end) return defaultFilter(entriesArr, 10);
+    if (!begin && !end) return defaultFilter(entriesArr, dayCount);
 
     return noEndDateProvidedFilter(entriesArr, dayCount, begin); //10 next available days
 }
@@ -44,8 +44,9 @@ function defaultFilter(entriesArr, maxPeriodLength) {
 
     while (i < entriesArr.length) {
         const item = entriesArr[i];
-        if (!item.stop) continue;
         i += 1;
+
+        if (!item.stop) continue;
 
         const currItemDayOfYear = getDayOfYear(item.start);
 

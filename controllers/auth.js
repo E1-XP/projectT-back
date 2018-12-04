@@ -1,8 +1,9 @@
 const db = require('../models'),
     bcrypt = require('bcrypt');
 
+const { getUserData } = require('./../controllers/user');
+
 const validateUser = require('./../services/validateUser');
-const filterEntries = require('./../services/filterEntries');
 
 exports.signup = function (req, res) {
     const { email, username, password } = req.body;
@@ -45,15 +46,13 @@ exports.login = function (req, res) {
         });
         else {
             if (bcrypt.compareSync(password, user.password)) {
-                persistentSession ?
-                    req.persistentSession.user = user._id : req.session.user = user._id;
+                if (persistentSession) req.persistentSession.user = user._id
+                else req.session.user = user._id;
 
-                populateEntries(user)
-                    .then(data => Object.assign({}, data, {
-                        entries: filterEntries(data.entries)
-                    }))
-                    .then(filteredData => res.status(200).json(filteredData))
-                    .catch(err => console.log(err));
+                res.status(200).json({
+                    "message": "success",
+                    "userId": user._id
+                });
             }
 
             else res.status(401).json({ "message": "user/password combination not found" });
@@ -68,35 +67,17 @@ exports.logout = function (req, res) {
 }
 
 exports.refresh = function (req, res) {
-    if (req.session.user || req.persistentSession.user) {
-        const sessionData = req.session.user ?
-            req.session.user : req.persistentSession.user;
 
-        db.User.findById(sessionData).then(function (user) {
-            if (!user) return res.status(401).json({
+    if (req.session.user || req.persistentSession.user) {
+        const id = req.session.user || req.persistentSession.user;
+
+        db.User.findById(id).then(function (user) {
+            if (!user) res.status(401).json({
                 "message": "user/password combination not found"
             });
 
-            populateEntries(user)
-                .then(data => Object.assign({}, data, { entries: filterEntries(data.entries) }))
-                .then(filteredData => res.status(200).json(filteredData))
-                .catch(err => console.log(err));
+            getUserData(req, res);
         });
     }
     else res.status(401).json({ "message": "user/password combination not found" });
-}
-
-function populateEntries(user) {
-    return new Promise(function (res, rej) {
-        db.TimeEntry.find({ userId: user._id }).sort({ start: 'desc' }).then(foundEntries => {
-            user.entries = foundEntries;
-
-            const data = Object.keys(user._doc).reduce((acc, key) => {
-                if (key !== 'password') acc[key] = user._doc[key];
-                return acc;
-            }, {});
-
-            res(data);
-        });
-    });
 }
