@@ -25,7 +25,8 @@ exports.all = function (req, res) {
             .sort({ start: 'desc' })
             .then(foundEntries =>
                 res.status(200)
-                    .json(filterEntries(foundEntries, Number(begin), Number(end), Number(days))));
+                    .json(filterEntries(foundEntries,
+                        Number(begin), Number(end), Number(days))));
     }
 }
 
