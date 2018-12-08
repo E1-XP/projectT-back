@@ -46,11 +46,9 @@ function defaultFilter(entriesArr, maxPeriodLength) {
         const item = entriesArr[i];
         i += 1;
 
-        if (!item.stop) continue;
-
         const currItemDayOfYear = getDayOfYear(item.start);
 
-        if (currItemDayOfYear !== previousItemDay) {
+        if (currItemDayOfYear !== previousItemDay && item.stop) {
             dayCount += 1;
             if (dayCount > maxPeriodLength + 1) break;
         }
