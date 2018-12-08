@@ -7,9 +7,8 @@ const express = require('express'),
     compression = require('compression'),
     cors = require('cors'),
     PORT = process.env.PORT || 3001,
-    ORIGIN_URL = new RegExp('https?://project--t-front.herokuapp.com', 'i');
-// 'http://localhost:8080';
-
+    ORIGIN_URL = 'https://e1-xp.github.io';
+//'http://localhost:8080';
 
 const db = require('./models');
 const routes = require('./routes');
