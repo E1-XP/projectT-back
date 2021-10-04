@@ -1,5 +1,5 @@
 const db = require('../models'),
-    bcrypt = require('bcrypt');
+    bcrypt = require('bcryptjs');
 
 const { getUserData } = require('./../controllers/user');
 
