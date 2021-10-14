@@ -31,7 +31,8 @@ app.use(
     secret: process.env.SECRET_KEY,
     cookie: {
       // ephemeral: true,
-      httpOnly: true,
+        httpOnly: true,
+        sameSite:"none"
     },
     store,
     saveUninitialized: false,
