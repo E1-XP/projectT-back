@@ -33,7 +33,7 @@ exports.signup = function (req, res) {
 }
 
 exports.login = function (req, res) {
-    const { email, password, persistentSession } = req.body;
+    const { email, password,  } = req.body;
 
     if (!validateUser(req.body)) return res.status(401).json({
         'message': 'invalid data provided'
@@ -46,8 +46,7 @@ exports.login = function (req, res) {
         });
         else {
             if (bcrypt.compareSync(password, user.password)) {
-                if (persistentSession) req.persistentSession.user = user._id
-                else req.session.user = user._id;
+                 req.session.user = user._id;
 
                 res.status(200).json({
                     "message": "success",
@@ -61,15 +60,16 @@ exports.login = function (req, res) {
 }
 
 exports.logout = function (req, res) {
-    if (req.session) req.session.reset();
-    if (req.persistentSession) req.persistentSession.reset();
+    if (req.session) req.session.destroy(err => {
+        err && console.log(err);
+    });
     res.status(200).json({ "message": "success" });
 }
 
 exports.refresh = function (req, res) {
 
-    if (req.session.user || req.persistentSession.user) {
-        const id = req.session.user || req.persistentSession.user;
+    if (req.session.user ) {
+        const id = req.session.user;
 
         db.User.findById(id).then(function (user) {
             if (!user) res.status(401).json({
