@@ -25,6 +25,8 @@ app.use(cors({
     credentials: true
 }));
 
+app.set("trust proxy", 1);
+
 app.use(
   session({
     // cookieName: 'session',
@@ -32,7 +34,8 @@ app.use(
     cookie: {
       // ephemeral: true,
         httpOnly: true,
-        sameSite:"none"
+        secure : true,
+        sameSite :"none"
     },
     store,
     saveUninitialized: false,
