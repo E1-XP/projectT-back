@@ -7,13 +7,15 @@ exports.all = function (req, res) {
     const { userid } = req.params;
     const { begin, end, days } = req.query;
 
+    const num = (value) => value ? Number(value) : value;
+
     if (begin && end) {
         db.TimeEntry
             .find({
                 userId: userid,
                 start: {
-                    $lte: Number(begin),
-                    $gte: Number(end)
+                    $lte: num(begin),
+                    $gte: num(end)
                 }
             })
             .sort({ start: 'desc' })
@@ -26,7 +28,7 @@ exports.all = function (req, res) {
             .then(foundEntries =>
                 res.status(200)
                     .json(filterEntries(foundEntries,
-                        Number(begin), Number(end), Number(days))));
+                        num(begin), num(end), num(days))));
     }
 }
 
