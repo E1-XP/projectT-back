@@ -1,4 +1,5 @@
-const getDayOfYear = require('date-fns/get_day_of_year');
+const differenceInCalendarDays = require('date-fns/difference_in_calendar_days');
+const format = require("date-fns/format");
 
 module.exports = function filterEntries(entriesArr, begin, end, dayCount = 10) {
     if (!begin && !end) return defaultFilter(entriesArr, dayCount);
@@ -8,28 +9,28 @@ module.exports = function filterEntries(entriesArr, begin, end, dayCount = 10) {
 
 function noEndDateProvidedFilter(entriesArr, maxPeriodLength, begin) {
     if (!begin) return entriesArr;
-
+  
     const filtered = [];
-    const startDay = getDayOfYear(Number(begin));
-    let previousItemDay;
+    const startDay = begin;
+    let previousItemStart = entriesArr[0].start;
     let dayCount = 0;
     let i = 0;
 
     while (i < entriesArr.length) {
         const item = entriesArr[i];
-        const currItemDayOfYear = getDayOfYear(item.start);
         i += 1;
 
-        if (currItemDayOfYear > startDay) continue;
+        if (item.start > startDay) continue;
 
-        if (currItemDayOfYear !== previousItemDay) {
+        if (differenceInCalendarDays(item.start, previousItemStart)) {
             dayCount += 1;
-            if (dayCount > maxPeriodLength + 1) break;
+      
+            if (dayCount > maxPeriodLength) break;
         }
 
         filtered.push(item);
 
-        previousItemDay = currItemDayOfYear;
+        previousItemStart = item.start;
     }
     return filtered;
 }
@@ -38,24 +39,26 @@ function defaultFilter(entriesArr, maxPeriodLength) {
     if (!entriesArr.length) return entriesArr;
 
     const filtered = [];
-    let previousItemDay;
+    let previousItemStart = entriesArr[0].start;
     let dayCount = 0;
     let i = 0;
 
     while (i < entriesArr.length) {
         const item = entriesArr[i];
-        i += 1;
-
-        const currItemDayOfYear = getDayOfYear(item.start);
-
-        if (currItemDayOfYear !== previousItemDay && item.stop) {
+      
+        if (differenceInCalendarDays(item.start, previousItemStart) && item.stop) {
             dayCount += 1;
-            if (dayCount > maxPeriodLength + 1) break;
+         
+            if (dayCount > maxPeriodLength -1) break;
         }
 
         filtered.push(item);
 
-        previousItemDay = currItemDayOfYear;
+        i += 1;
+        previousItemStart = item.start;
     }
     return filtered;
 }
+
+
+
