@@ -59,8 +59,8 @@ exports.editPassword = function (req, res) {
             user.password = newpass;
 
             user.save().then(() => {
-                if (req.session) req.session.reset();
-                if (req.persistentSession) req.persistentSession.reset();
+                if (req.session) req.session.regenerate();
+                if (req.persistentSession) req.persistentSession.regenerate();
 
                 req.session.user = user._id;
                 res.status(200).json({ result: true });
