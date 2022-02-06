@@ -59,13 +59,19 @@ exports.editPassword = function (req, res) {
             user.password = newpass;
 
             user.save().then(() => {
-                if (req.session) req.session.regenerate();
-                if (req.persistentSession) req.persistentSession.regenerate();
-
-                req.session.user = user._id;
-                res.status(200).json({ result: true });
-
-            }).catch(err => console.log(err));
+                function onRegenerate(err) {
+                   req.session.user = user._id;
+                   
+                   if (err) res.status.(500).json({ message : "internal server error" });
+                   res.status(200).json({ result: true });
+                }       
+                       
+                if (req.session) req.session.regenerate(onRegenerate);
+                if (req.persistentSession) req.persistentSession.regenerate(onRegenerate);
+            }).catch(err => {
+                   console.log(err);
+                   res.status.(500).json({ message : "internal server error" })
+               });
         }
 
         else res.status(401).json({ result: false });
