@@ -1,12 +1,12 @@
-const router = require('express').Router({ mergeParams: true });
-const entries = require('../controllers/entries');
+const router = require("express").Router({ mergeParams: true });
+const entries = require("../controllers/entries");
 
-router.get('/', entries.all);
+router.get("/", entries.all);
 
-router.post('/', entries.new);
+router.post("/", entries.new);
 
-router.put('/:entryid/', entries.update);
+router.put("/:entryid/", entries.update);
 
-router.delete('/:entryid/', entries.delete);
+router.delete("/:entryid/", entries.delete);
 
 module.exports = router;

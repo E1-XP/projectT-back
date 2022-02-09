@@ -1,18 +1,18 @@
-require('dotenv').config();
+require("dotenv").config();
 
-const express = require('express'),
-    app = express(),
-    session = require('express-session'),
-    MongoDBStore= require('connect-mongodb-session')(session),
-    bodyParser = require('body-parser'),
-    compression = require('compression'),
-    cors = require('cors'),
-    PORT = process.env.PORT || 3001,
-    ORIGIN_URL = ['http://localhost:8080','https://project-t-v2.netlify.app'];
+const express = require("express"),
+  app = express(),
+  session = require("express-session"),
+  MongoDBStore = require("connect-mongodb-session")(session),
+  bodyParser = require("body-parser"),
+  compression = require("compression"),
+  cors = require("cors"),
+  PORT = process.env.PORT || 3001,
+  ORIGIN_URL = ["http://localhost:8080", "https://project-t-v2.netlify.app"];
 
-const db = require('./models');
-const routes = require('./routes');
-const { URL } = require('./models');
+const db = require("./models");
+const routes = require("./routes");
+const { URL } = require("./models");
 
 const store = new MongoDBStore({
   uri: URL,
@@ -20,10 +20,12 @@ const store = new MongoDBStore({
 });
 
 app.use(bodyParser.json());
-app.use(cors({
+app.use(
+  cors({
     origin: ORIGIN_URL,
-    credentials: true
-}));
+    credentials: true,
+  })
+);
 
 app.set("trust proxy", 1);
 
@@ -33,9 +35,9 @@ app.use(
     secret: process.env.SECRET_KEY,
     cookie: {
       // ephemeral: true,
-        httpOnly: true,
-        secure : true,
-        sameSite :"none"
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
     },
     store,
     saveUninitialized: false,
@@ -54,8 +56,8 @@ app.use(
 
 app.use(compression());
 
-app.use(express.static('public'));
+app.use(express.static("public"));
 
-app.use('/', routes);
+app.use("/", routes);
 
 app.listen(PORT, () => console.log(`Listening on ${PORT}.`));
