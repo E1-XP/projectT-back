@@ -19,6 +19,8 @@ const store = new MongoDBStore({
   collection: "sessions",
 });
 
+module.exports = { ORIGIN_URL };
+
 app.use(bodyParser.json());
 app.use(
   cors({

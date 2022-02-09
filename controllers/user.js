@@ -4,6 +4,8 @@ const path = require("path");
 const formidable = require("formidable");
 const bcrypt = require("bcryptjs");
 
+const app = require("./../app");
+
 const filterEntries = require("./../services/filterEntries");
 
 exports.getUserData = function (req, res) {
@@ -108,7 +110,7 @@ exports.upload = function (req, res) {
 
   form.on("file", function (name, file) {
     db.User.findById(userid).then((user) => {
-      user.avatar = `https://project--t.herokuapp.com/uploads/${userid}/${file.name}`;
+      user.avatar = `${app.ORIGIN_URL}/uploads/${userid}/${file.name}`;
 
       user
         .save()
