@@ -110,7 +110,7 @@ exports.upload = function (req, res) {
 
   form.on("file", function (name, file) {
     db.User.findById(userid).then((user) => {
-      user.avatar = `${app.ORIGIN_URL[1]}/uploads/${userid}/${file.name}`;
+      user.avatar = `${ORIGIN_URL[1]}/uploads/${userid}/${file.name}`;
 
       user
         .save()
