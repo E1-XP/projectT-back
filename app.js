@@ -7,8 +7,9 @@ const express = require("express"),
   bodyParser = require("body-parser"),
   compression = require("compression"),
   cors = require("cors"),
-  PORT = process.env.PORT || 3001,
-  ORIGIN_URL = ["http://localhost:8080", "https://project-t-v2.netlify.app"];
+  PORT = process.env.PORT || 3001;
+
+const { ORIGIN_URL } = require("./config");
 
 const db = require("./models");
 const routes = require("./routes");
@@ -18,8 +19,6 @@ const store = new MongoDBStore({
   uri: URL,
   collection: "sessions",
 });
-
-module.exports = { ORIGIN_URL };
 
 app.use(bodyParser.json());
 app.use(

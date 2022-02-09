@@ -4,7 +4,7 @@ const path = require("path");
 const formidable = require("formidable");
 const bcrypt = require("bcryptjs");
 
-const app = require("./../app");
+const { ORIGIN_URL } = require("./../config");
 
 const filterEntries = require("./../services/filterEntries");
 
@@ -110,7 +110,7 @@ exports.upload = function (req, res) {
 
   form.on("file", function (name, file) {
     db.User.findById(userid).then((user) => {
-      user.avatar = `${app.ORIGIN_URL}/uploads/${userid}/${file.name}`;
+      user.avatar = `${app.ORIGIN_URL[1]}/uploads/${userid}/${file.name}`;
 
       user
         .save()
