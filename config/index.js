@@ -3,4 +3,6 @@ const ORIGIN_URL = [
   "https://project-t-v2.netlify.app",
 ];
 
-module.exports = { ORIGIN_URL };
+const INSTANCE_URL = "https://project-t.gtxcodeworks.site";
+
+module.exports = { ORIGIN_URL, INSTANCE_URL };
