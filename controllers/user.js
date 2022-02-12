@@ -132,7 +132,7 @@ exports.deleteAvatar = function (req, res) {
   const { userid } = req.params;
   const { avatarURL } = req.body;
 
-  fs.unlink(`${__dirname}'public'${avatarURL}`, (err) => {
+  fs.unlink(`${__dirname}/../public${avatarURL}`, (err) => {
     if (err) {
       console.log(err);
       res.status(500).json({ result: false });
