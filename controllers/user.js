@@ -132,7 +132,7 @@ exports.deleteAvatar = function (req, res) {
   const { userid } = req.params;
   const { avatarURL } = req.body;
 
-  fs.unlink(`${avatarURL}`, (err) => {
+  fs.unlink(`${INSTANCE_URL}${avatarURL}`, (err) => {
     if (err) {
       console.log(err);
       res.status(500).json({ result: false });
