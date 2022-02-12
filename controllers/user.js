@@ -132,7 +132,7 @@ exports.deleteAvatar = function (req, res) {
   const { userid } = req.params;
   const { avatarURL } = req.body;
 
-  fs.unlink(`${INSTANCE_URL}${avatarURL}`, (err) => {
+  fs.unlink(`${__dirname}'public'${avatarURL}`, (err) => {
     if (err) {
       console.log(err);
       res.status(500).json({ result: false });
@@ -161,8 +161,6 @@ exports.deleteAvatar = function (req, res) {
           res.status(500).json({ result: false });
         });
     });
-
-    res.status(200).json({ result: true });
   });
 };
 
