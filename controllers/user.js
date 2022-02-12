@@ -80,7 +80,7 @@ exports.editPassword = function (req, res) {
     .catch((err) => console.log(err));
 };
 
-exports.upload = function (req, res) {
+exports.uploadAvatar = function (req, res) {
   const { userid } = req.params;
 
   const form = new formidable.IncomingForm();
@@ -125,6 +125,44 @@ exports.upload = function (req, res) {
         })
         .catch((err) => console.log(err));
     });
+  });
+};
+
+exports.deleteAvatar = function (req, res) {
+  const { userid } = req.params;
+  const { avatarURL } = req.body;
+
+  fs.unlink(`${avatarURL}`, (err) => {
+    if (err) {
+      console.log(err);
+      res.status(500).json({ result: false });
+    }
+
+    db.User.findById(userid).then((user) => {
+      if (!user) {
+        res.status(500).json({ result: false });
+      }
+
+      user.avatar = "";
+
+      user
+        .save()
+        .then(() => {
+          const userObj = {};
+
+          for (key in user._doc) {
+            if (key !== "password" && key !== "entries" && key !== "settings")
+              userObj[key] = user._doc[key];
+          }
+          res.status(200).json(userObj);
+        })
+        .catch((err) => {
+          console.log(err);
+          res.status(500).json({ result: false });
+        });
+    });
+
+    res.status(200).json({ result: true });
   });
 };
 
