@@ -2,6 +2,7 @@ const db = require("../models"),
   mongoose = require("mongoose");
 
 const filterEntries = require("./../services/filterEntries");
+const errorHandler = require("./../services/error");
 
 exports.all = function (req, res) {
   const { userid } = req.params;
@@ -18,7 +19,11 @@ exports.all = function (req, res) {
       },
     })
       .sort({ start: "desc" })
-      .then((foundEntries) => res.status(200).json(foundEntries));
+      .then((foundEntries) => res.status(200).json(foundEntries))
+      .catch((err) => {
+        errorHandler(err);
+        res.status(500).json({ message: "internal server error" });
+      });
   } else {
     db.TimeEntry.find({ userId: userid })
       .sort({ start: "desc" })
@@ -26,7 +31,11 @@ exports.all = function (req, res) {
         res
           .status(200)
           .json(filterEntries(foundEntries, num(begin), num(end), num(days)))
-      );
+      )
+      .catch((err) => {
+        errorHandler(err);
+        res.status(500).json({ message: "internal server error" });
+      });
   }
 };
 
@@ -42,10 +51,16 @@ exports.new = function (req, res) {
         user
           .save()
           .then((savedUser) => res.status(200).json(createdEntry))
-          .catch((err) => console.log(err));
+          .catch((err) => {
+            errorHandler(err);
+            res.status(500).json({ message: "internal server error" });
+          });
       });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      errorHandler(err);
+      res.status(500).json({ message: "internal server error" });
+    });
 };
 
 exports.update = function (req, res) {
@@ -58,14 +73,20 @@ exports.update = function (req, res) {
           res.status(200).json(foundEntry)
         );
       })
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        errorHandler(err);
+        res.status(500).json({ message: "internal server error" });
+      });
   } else {
     const prArr = JSON.parse(entryid).map(
       (item) =>
-        new Promise((res, rej) =>
-          db.TimeEntry.update({ _id: item }, { $set: req.query }).then((item) =>
-            res()
-          )
+        new Promise((resolve, reject) =>
+          db.TimeEntry.update({ _id: item }, { $set: req.query })
+            .then(() => resolve())
+            .catch((err) => {
+              errorHandler(err);
+              res.status(500).json({ message: "internal server error" });
+            })
         )
     );
 
@@ -79,7 +100,10 @@ exports.update = function (req, res) {
           res.status(200).json(foundEntries)
         );
       })
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        errorHandler(err);
+        res.status(500).json({ message: "internal server error" });
+      });
   }
 };
 
@@ -88,22 +112,29 @@ exports.delete = function (req, res) {
 
   if (entryid.length === 24) {
     db.TimeEntry.findByIdAndRemove(entryid)
-      .then((data) => {
-        res.status(200).json(entryid);
-      })
-      .catch((err) => console.log(err));
+      .then((data) => res.status(200).json(entryid))
+      .catch((err) => {
+        errorHandler(err);
+        res.status(500).json({ message: "internal server error" });
+      });
   } else {
     const prArr = JSON.parse(entryid).map(
       (item) =>
-        new Promise((res, rej) =>
-          db.TimeEntry.findByIdAndRemove(item).then((item) => res())
+        new Promise((resolve, reject) =>
+          db.TimeEntry.findByIdAndRemove(item)
+            .then((item) => resolve())
+            .catch((err) => {
+              errorHandler(err);
+              res.status(500).json({ message: "internal server error" });
+            })
         )
     );
 
     Promise.all(prArr)
-      .then(() => {
-        res.status(200).json(JSON.parse(entryid));
-      })
-      .catch((err) => console.log(err));
+      .then(() => res.status(200).json(JSON.parse(entryid)))
+      .catch((err) => {
+        errorHandler(err);
+        res.status(500).json({ message: "internal server error" });
+      });
   }
 };

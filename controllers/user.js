@@ -7,6 +7,7 @@ const bcrypt = require("bcryptjs");
 const { INSTANCE_URL } = require("./../config");
 
 const filterEntries = require("./../services/filterEntries");
+const errorHandler = require("./../services/error");
 
 exports.getUserData = function (req, res) {
   const _id = req.session.user || req.persistentSession.user;
@@ -19,9 +20,15 @@ exports.getUserData = function (req, res) {
           return data;
         })
         .then((filteredData) => res.status(200).json(filteredData))
-        .catch((err) => console.log(err));
+        .catch((err) => {
+          errorHandler(err);
+          res.status(500).json({ message: "internal server error" });
+        });
     })
-    .catch((err) => res.status(400).json({ message: "internal server error" }));
+    .catch((err) => {
+      errorHandler(err);
+      res.status(500).json({ message: "internal server error" });
+    });
 };
 
 exports.editUserData = function (req, res) {
@@ -50,9 +57,15 @@ exports.editUserData = function (req, res) {
           }
           res.status(200).json(userObj);
         })
-        .catch((err) => console.log(err));
+        .catch((err) => {
+          errorHandler(err);
+          res.status(500).json({ message: "internal server error" });
+        });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      errorHandler(err);
+      res.status(500).json({ message: "internal server error" });
+    });
 };
 
 exports.editPassword = function (req, res) {
@@ -74,10 +87,16 @@ exports.editPassword = function (req, res) {
             req.session.user = user._id;
             res.status(200).json({ result: true });
           })
-          .catch((err) => console.log(err));
+          .catch((err) => {
+            errorHandler(err);
+            res.status(500).json({ message: "internal server error" });
+          });
       } else res.status(401).json({ result: false });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      errorHandler(err);
+      res.status(500).json({ message: "internal server error" });
+    });
 };
 
 exports.uploadAvatar = function (req, res) {
@@ -97,7 +116,10 @@ exports.uploadAvatar = function (req, res) {
     if (files)
       for (const file of files) {
         fs.unlink(path.join(dir, file), (err) => {
-          if (err) console.log(err);
+          if (err) {
+            errorHandler(err);
+            res.status(500).json({ message: "internal server error" });
+          }
         });
       }
   });
@@ -109,22 +131,30 @@ exports.uploadAvatar = function (req, res) {
   });
 
   form.on("file", function (name, file) {
-    db.User.findById(userid).then((user) => {
-      user.avatar = `${INSTANCE_URL}/uploads/${userid}/${file.name}`;
+    db.User.findById(userid)
+      .then((user) => {
+        user.avatar = `${INSTANCE_URL}/uploads/${userid}/${file.name}`;
 
-      user
-        .save()
-        .then(() => {
-          const userObj = {};
+        user
+          .save()
+          .then(() => {
+            const userObj = {};
 
-          for (key in user._doc) {
-            if (key !== "password" && key !== "entries" && key !== "settings")
-              userObj[key] = user._doc[key];
-          }
-          res.status(200).json(userObj);
-        })
-        .catch((err) => console.log(err));
-    });
+            for (key in user._doc) {
+              if (key !== "password" && key !== "entries" && key !== "settings")
+                userObj[key] = user._doc[key];
+            }
+            res.status(200).json(userObj);
+          })
+          .catch((err) => {
+            errorHandler(err);
+            res.status(500).json({ message: "internal server error" });
+          });
+      })
+      .catch((err) => {
+        errorHandler(err);
+        res.status(500).json({ message: "internal server error" });
+      });
   });
 };
 
@@ -134,38 +164,45 @@ exports.deleteAvatar = function (req, res) {
 
   fs.unlink(`${__dirname}/../public${avatarURL}`, (err) => {
     if (err) {
-      console.log(err);
-      res.status(500).json({ result: false });
+      errorHandler(err);
+      res.status(500).json({ message: "internal server error", result: false });
     }
 
-    db.User.findById(userid).then((user) => {
-      if (!user) {
-        res.status(500).json({ result: false });
-      }
-
-      user.avatar = "";
-
-      user
-        .save()
-        .then(() => {
-          const userObj = {};
-
-          for (key in user._doc) {
-            if (key !== "password" && key !== "entries" && key !== "settings")
-              userObj[key] = user._doc[key];
-          }
-          res.status(200).json(userObj);
-        })
-        .catch((err) => {
-          console.log(err);
+    db.User.findById(userid)
+      .then((user) => {
+        if (!user) {
           res.status(500).json({ result: false });
-        });
-    });
+        }
+
+        user.avatar = "";
+
+        user
+          .save()
+          .then(() => {
+            const userObj = {};
+
+            for (key in user._doc) {
+              if (key !== "password" && key !== "entries" && key !== "settings")
+                userObj[key] = user._doc[key];
+            }
+            res.status(200).json(userObj);
+          })
+          .catch((err) => {
+            errorHandler(err);
+            res
+              .status(500)
+              .json({ message: "internal server error", result: false });
+          });
+      })
+      .catch((err) => {
+        errorHandler(err);
+        res.status(500).json({ message: "internal server error" });
+      });
   });
 };
 
 function populateEntries(user) {
-  return new Promise(function (res, rej) {
+  return new Promise(function (resolve, reject) {
     db.TimeEntry.find({ userId: user._id })
       .sort({ start: "desc" })
       .then((foundEntries) => {
@@ -176,7 +213,7 @@ function populateEntries(user) {
           return acc;
         }, {});
 
-        res(data);
+        resolve(data);
       });
   });
 }
