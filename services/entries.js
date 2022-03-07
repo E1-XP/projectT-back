@@ -1,0 +1,187 @@
+const differenceInCalendarDays = require("date-fns/difference_in_calendar_days");
+const format = require("date-fns/format");
+const mongoose = require("mongoose");
+
+const db = require("../models");
+
+exports.filterEntries = function (entriesArr, begin, end, dayCount = 10) {
+  if (!begin && !end) return defaultFilter(entriesArr, dayCount);
+
+  return noEndDateProvidedFilter(entriesArr, dayCount, begin); //10 next available days
+};
+
+function noEndDateProvidedFilter(entriesArr, maxPeriodLength, begin) {
+  if (!begin) return entriesArr;
+
+  const filtered = [];
+  const startDay = begin;
+  let previousItemStart = entriesArr[0].start;
+  let dayCount = 0;
+  let i = 0;
+
+  while (i < entriesArr.length) {
+    const item = entriesArr[i];
+    i += 1;
+
+    if (item.start > startDay) continue;
+
+    if (differenceInCalendarDays(item.start, previousItemStart)) {
+      dayCount += 1;
+
+      if (dayCount > maxPeriodLength) break;
+    }
+
+    filtered.push(item);
+
+    previousItemStart = item.start;
+  }
+  return filtered;
+}
+
+function defaultFilter(entriesArr, maxPeriodLength) {
+  if (!entriesArr.length) return entriesArr;
+
+  const filtered = [];
+  let previousItemStart = entriesArr[0].start;
+  let dayCount = 0;
+  let i = 0;
+
+  while (i < entriesArr.length) {
+    const item = entriesArr[i];
+
+    if (differenceInCalendarDays(item.start, previousItemStart) && item.stop) {
+      dayCount += 1;
+
+      if (dayCount > maxPeriodLength - 1) break;
+    }
+
+    filtered.push(item);
+
+    i += 1;
+    previousItemStart = item.start;
+  }
+  return filtered;
+}
+
+exports.getAllHandler = function (
+  begin,
+  end,
+  days,
+  userid,
+  respondWithEntries,
+  respondWithFilteredEntries,
+  catchError
+) {
+  const num = (value) => (value ? Number(value) : value);
+
+  if (begin && end) {
+    db.TimeEntry.find({
+      userId: userid,
+      start: {
+        $lte: num(begin),
+        $gte: num(end),
+      },
+    })
+      .sort({ start: "desc" })
+      .then((foundEntries) => respondWithEntries(foundEntries))
+      .catch((err) => catchError(err));
+  } else {
+    db.TimeEntry.find({ userId: userid })
+      .sort({ start: "desc" })
+      .then((foundEntries) =>
+        respondWithFilteredEntries(
+          module.exports.filterEntries(
+            foundEntries,
+            num(begin),
+            num(end),
+            num(days)
+          )
+        )
+      )
+      .catch((err) => catchError(err));
+  }
+};
+
+exports.newEntryHandler = function (
+  entry,
+  userId,
+  respondWithCreatedEntry,
+  catchError
+) {
+  db.TimeEntry.create(entry)
+    .then(function (createdEntry) {
+      db.User.findById(userId).then(function (user) {
+        user.entries.push(createdEntry.id);
+
+        user
+          .save()
+          .then(() => respondWithCreatedEntry(createdEntry))
+          .catch((err) => catchError(err));
+      });
+    })
+    .catch((err) => catchError(err));
+};
+
+exports.updateEntryHandler = function (
+  entryId,
+  query,
+  respondWithFoundEntries,
+  catchError
+) {
+  if (entryId.length === 24) {
+    db.TimeEntry.update({ _id: entryId }, { $set: query })
+      .then(function () {
+        db.TimeEntry.findById(entryId)
+          .then(respondWithFoundEntries)
+          .catch((err) => catchError(err));
+      })
+      .catch((err) => catchError(err));
+  } else {
+    const prArr = JSON.parse(entryId).map(
+      (item) =>
+        new Promise((resolve, reject) =>
+          db.TimeEntry.update({ _id: item }, { $set: query })
+            .then(() => resolve())
+            .catch((err) => catchError(err))
+        )
+    );
+
+    const idArr = JSON.parse(entryId).map(
+      (itm) => new mongoose.Types.ObjectId(itm)
+    );
+
+    Promise.all(prArr)
+      .then(function () {
+        db.TimeEntry.find({ _id: { $in: idArr } }).then(
+          respondWithFoundEntries
+        );
+      })
+      .catch((err) => catchError(err));
+  }
+};
+
+exports.deleteEntryHandler = function (
+  entryId,
+  respondWithEntryId,
+  respondWithEntriesId,
+  catchError
+) {
+  if (entryId.length === 24) {
+    db.TimeEntry.findByIdAndRemove(entryId)
+      .then((data) => respondWithEntryId)
+      .catch((err) => catchError(err));
+  } else {
+    const prArr = JSON.parse(entryId).map(
+      (item) =>
+        new Promise((resolve, reject) =>
+          db.TimeEntry.findByIdAndRemove(item)
+            .then((item) => resolve())
+            .catch((err) => catchError(err))
+        )
+    );
+
+    Promise.all(prArr)
+      .then(() => respondWithEntriesId())
+      .catch((err) => catchError(err));
+  }
+};

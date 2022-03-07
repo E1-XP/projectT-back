@@ -1,3 +1,3 @@
-module.exports = function (e) {
+exports.errorHandler = function (e) {
   console.log(e);
 };

@@ -1,140 +1,67 @@
-const db = require("../models"),
-  mongoose = require("mongoose");
+const db = require("../models");
 
-const filterEntries = require("./../services/filterEntries");
-const errorHandler = require("./../services/error");
+const {
+  getAllHandler,
+  newEntryHandler,
+  updateEntryHandler,
+  deleteEntryHandler,
+} = require("../services/entries");
+const { catchError } = require("./helpers");
 
 exports.all = function (req, res) {
   const { userid } = req.params;
   const { begin, end, days } = req.query;
 
-  const num = (value) => (value ? Number(value) : value);
+  const respondWithEntries = (entries) => res.status(200).json(entries);
 
-  if (begin && end) {
-    db.TimeEntry.find({
-      userId: userid,
-      start: {
-        $lte: num(begin),
-        $gte: num(end),
-      },
-    })
-      .sort({ start: "desc" })
-      .then((foundEntries) => res.status(200).json(foundEntries))
-      .catch((err) => {
-        errorHandler(err);
-        res.status(500).json({ message: "internal server error" });
-      });
-  } else {
-    db.TimeEntry.find({ userId: userid })
-      .sort({ start: "desc" })
-      .then((foundEntries) =>
-        res
-          .status(200)
-          .json(filterEntries(foundEntries, num(begin), num(end), num(days)))
-      )
-      .catch((err) => {
-        errorHandler(err);
-        res.status(500).json({ message: "internal server error" });
-      });
-  }
+  const respondWithFilteredEntries = (entries) => res.status(200).json(entries);
+
+  getAllHandler(
+    begin,
+    end,
+    days,
+    userid,
+    respondWithEntries,
+    respondWithFilteredEntries,
+    catchError(res)
+  );
 };
 
 exports.new = function (req, res) {
   const { userid } = req.params;
   const entry = Object.assign({}, req.body, { userId: userid }, req.query);
 
-  db.TimeEntry.create(entry)
-    .then(function (createdEntry) {
-      db.User.findById(req.params.userid).then(function (user) {
-        user.entries.push(createdEntry.id);
+  const respondWithCreatedEntry = (createdEntry) =>
+    res.status(200).json(createdEntry);
 
-        user
-          .save()
-          .then((savedUser) => res.status(200).json(createdEntry))
-          .catch((err) => {
-            errorHandler(err);
-            res.status(500).json({ message: "internal server error" });
-          });
-      });
-    })
-    .catch((err) => {
-      errorHandler(err);
-      res.status(500).json({ message: "internal server error" });
-    });
+  newEntryHandler(entry, userid, respondWithCreatedEntry, catchError(res));
 };
 
 exports.update = function (req, res) {
-  const { entryid, userid } = req.params;
+  const { entryid } = req.params;
 
-  if (entryid.length === 24) {
-    db.TimeEntry.update({ _id: entryid }, { $set: req.query })
-      .then(function () {
-        db.TimeEntry.findById(entryid).then((foundEntry) =>
-          res.status(200).json(foundEntry)
-        );
-      })
-      .catch((err) => {
-        errorHandler(err);
-        res.status(500).json({ message: "internal server error" });
-      });
-  } else {
-    const prArr = JSON.parse(entryid).map(
-      (item) =>
-        new Promise((resolve, reject) =>
-          db.TimeEntry.update({ _id: item }, { $set: req.query })
-            .then(() => resolve())
-            .catch((err) => {
-              errorHandler(err);
-              res.status(500).json({ message: "internal server error" });
-            })
-        )
-    );
+  const respondWithFoundEntries = (foundEntries) =>
+    res.status(200).json(foundEntries);
 
-    const idArr = JSON.parse(entryid).map(
-      (itm) => new mongoose.Types.ObjectId(itm)
-    );
-
-    Promise.all(prArr)
-      .then(function () {
-        db.TimeEntry.find({ _id: { $in: idArr } }).then((foundEntries) =>
-          res.status(200).json(foundEntries)
-        );
-      })
-      .catch((err) => {
-        errorHandler(err);
-        res.status(500).json({ message: "internal server error" });
-      });
-  }
+  updateEntryHandler(
+    entryid,
+    req.query,
+    respondWithFoundEntries,
+    catchError(res)
+  );
 };
 
 exports.delete = function (req, res) {
   const { userid, entryid } = req.params;
 
-  if (entryid.length === 24) {
-    db.TimeEntry.findByIdAndRemove(entryid)
-      .then((data) => res.status(200).json(entryid))
-      .catch((err) => {
-        errorHandler(err);
-        res.status(500).json({ message: "internal server error" });
-      });
-  } else {
-    const prArr = JSON.parse(entryid).map(
-      (item) =>
-        new Promise((resolve, reject) =>
-          db.TimeEntry.findByIdAndRemove(item)
-            .then((item) => resolve())
-            .catch((err) => {
-              errorHandler(err);
-              res.status(500).json({ message: "internal server error" });
-            })
-        )
-    );
+  const respondWithEntryId = () => res.status(200).json(entryid);
+  const respondWithEntriesId = () => () =>
+    res.status(200).json(JSON.parse(entryid));
 
-    Promise.all(prArr)
-      .then(() => res.status(200).json(JSON.parse(entryid)))
-      .catch((err) => {
-        errorHandler(err);
-        res.status(500).json({ message: "internal server error" });
-      });
-  }
+  deleteEntryHandler(
+    entryid,
+    respondWithEntryId,
+    respondWithEntriesId,
+    catchError(res)
+  );
 };
