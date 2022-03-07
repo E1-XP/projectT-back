@@ -48,13 +48,14 @@ exports.refreshHandler = function (
   userId,
   userPasswordNotFoundResponse,
   getUserData,
+  respondWithFilteredData,
   catchError
 ) {
   db.User.findById(userId)
     .then(function (user) {
       if (!user) userPasswordNotFoundResponse();
 
-      getUserData(fd);
+      getUserData(userId, respondWithFilteredData, catchError);
     })
     .catch((err) => catchError(err));
 };

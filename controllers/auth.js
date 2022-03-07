@@ -1,7 +1,5 @@
 const db = require("../models");
 
-const { getUserData } = require("./../controllers/user");
-
 const {
   signUpHandler,
   loginHandler,
@@ -9,6 +7,7 @@ const {
 } = require("./../services/auth");
 const validateUser = require("./../services/validateUser");
 const { errorHandler } = require("./../services/error");
+const { getUserDataHandler } = require("../services/user");
 const { catchError } = require("./helpers");
 
 exports.signup = function (req, res) {
@@ -86,10 +85,14 @@ exports.refresh = function (req, res) {
         message: "user/password combination not found",
       });
 
+    const respondWithFilteredData = (filteredData) =>
+      res.status(200).json(filteredData);
+
     refreshHandler(
       id,
       userPasswordNotFoundResponse,
-      getUserData,
+      getUserDataHandler,
+      respondWithFilteredData,
       catchError(res)
     );
   } else
