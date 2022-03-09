@@ -77,8 +77,7 @@ exports.removeProjectHandler = function (
                     if (err) return catchError(err);
 
                     respondWithUser(user);
-                  })
-                  .catch((err) => catchError(err));
+                  });
               })
               .catch((err) => catchError(err));
           })
