@@ -128,7 +128,7 @@ exports.uploadAvatarHandler = function (
             const userObj = {};
 
             for (key in user._doc) {
-              if (key !== "password" && key !== "entries" && key !== "settings")
+              if (key !== "password" && key !== "entries")
                 userObj[key] = user._doc[key];
             }
             respondWithUserData(userObj);
@@ -163,7 +163,7 @@ exports.deleteAvatarHandler = function (
             const userObj = {};
 
             for (key in user._doc) {
-              if (key !== "password" && key !== "entries" && key !== "settings")
+              if (key !== "password" && key !== "entries")
                 userObj[key] = user._doc[key];
             }
             respondWithUserData(userObj);
