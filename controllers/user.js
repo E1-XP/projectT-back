@@ -66,7 +66,7 @@ exports.uploadAvatar = function (req, res) {
 
   const respondWithUserData = (data) => res.status(200).json(data);
 
-  uploadAvatarHandler(userid, respondWithUserData, catchError(res));
+  uploadAvatarHandler(userid, req, respondWithUserData, catchError(res));
 };
 
 exports.deleteAvatar = function (req, res) {

@@ -88,6 +88,7 @@ exports.editPasswordHandler = function (
 
 exports.uploadAvatarHandler = function (
   userId,
+  request,
   respondWithUserData,
   catchError
 ) {
@@ -110,7 +111,7 @@ exports.uploadAvatarHandler = function (
       }
   });
 
-  form.parse(req);
+  form.parse(request);
 
   form.on("fileBegin", function (name, file) {
     file.path = __dirname + `/../public/uploads/${userId}/${file.name}`;
