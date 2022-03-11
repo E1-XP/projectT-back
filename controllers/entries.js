@@ -55,8 +55,7 @@ exports.delete = function (req, res) {
   const { userid, entryid } = req.params;
 
   const respondWithEntryId = () => res.status(200).json(entryid);
-  const respondWithEntriesId = () => () =>
-    res.status(200).json(JSON.parse(entryid));
+  const respondWithEntriesId = () => res.status(200).json(JSON.parse(entryid));
 
   deleteEntryHandler(
     entryid,
