@@ -168,7 +168,7 @@ exports.deleteEntryHandler = function (
 ) {
   if (entryId.length === 24) {
     db.TimeEntry.findByIdAndRemove(entryId)
-      .then((data) => respondWithEntryId)
+      .then((data) => respondWithEntryId())
       .catch((err) => catchError(err));
   } else {
     const prArr = JSON.parse(entryId).map(
