@@ -123,65 +123,43 @@ exports.newEntryHandler = function (
 };
 
 exports.updateEntryHandler = function (
-  entryId,
-  query,
+  entryData,
   respondWithFoundEntries,
   catchError
 ) {
-  if (entryId.length === 24) {
-    db.TimeEntry.update({ _id: entryId }, { $set: query })
-      .then(function () {
-        db.TimeEntry.findById(entryId)
-          .then(respondWithFoundEntries)
-          .catch((err) => catchError(err));
-      })
-      .catch((err) => catchError(err));
-  } else {
-    const prArr = JSON.parse(entryId).map(
-      (item) =>
-        new Promise((resolve, reject) =>
-          db.TimeEntry.update({ _id: item }, { $set: query })
-            .then(() => resolve())
-            .catch((err) => catchError(err))
-        )
-    );
+  const updateData = entryData.map(
+    ({ _id, ...data }) =>
+      new Promise((resolve, reject) =>
+        db.TimeEntry.update({ _id }, { $set: data })
+          .then(() => resolve())
+          .catch((err) => catchError(err))
+      )
+  );
 
-    const idArr = JSON.parse(entryId).map(
-      (itm) => new mongoose.Types.ObjectId(itm)
-    );
+  const idArr = entryData.map(({ _id }) => new mongoose.Types.ObjectId(_id));
 
-    Promise.all(prArr)
-      .then(function () {
-        db.TimeEntry.find({ _id: { $in: idArr } }).then(
-          respondWithFoundEntries
-        );
-      })
-      .catch((err) => catchError(err));
-  }
+  Promise.all(updateData)
+    .then(function () {
+      db.TimeEntry.find({ _id: { $in: idArr } }).then(respondWithFoundEntries);
+    })
+    .catch((err) => catchError(err));
 };
 
 exports.deleteEntryHandler = function (
   entryId,
-  respondWithEntryId,
   respondWithEntriesId,
   catchError
 ) {
-  if (entryId.length === 24) {
-    db.TimeEntry.findByIdAndRemove(entryId)
-      .then((data) => respondWithEntryId())
-      .catch((err) => catchError(err));
-  } else {
-    const prArr = JSON.parse(entryId).map(
-      (item) =>
-        new Promise((resolve, reject) =>
-          db.TimeEntry.findByIdAndRemove(item)
-            .then((item) => resolve())
-            .catch((err) => catchError(err))
-        )
-    );
+  const prArr = entryId.map(
+    (id) =>
+      new Promise((resolve, reject) =>
+        db.TimeEntry.findByIdAndRemove(id)
+          .then((id) => resolve())
+          .catch((err) => catchError(err))
+      )
+  );
 
-    Promise.all(prArr)
-      .then(() => respondWithEntriesId())
-      .catch((err) => catchError(err));
-  }
+  Promise.all(prArr)
+    .then(() => respondWithEntriesId())
+    .catch((err) => catchError(err));
 };

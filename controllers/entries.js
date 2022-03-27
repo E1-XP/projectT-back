@@ -38,29 +38,19 @@ exports.new = function (req, res) {
 };
 
 exports.update = function (req, res) {
-  const { entryid } = req.params;
+  const entryData = req.body;
 
   const respondWithFoundEntries = (foundEntries) =>
     res.status(200).json(foundEntries);
 
-  updateEntryHandler(
-    entryid,
-    req.query,
-    respondWithFoundEntries,
-    catchError(res)
-  );
+  updateEntryHandler(entryData, respondWithFoundEntries, catchError(res));
 };
 
 exports.delete = function (req, res) {
-  const { userid, entryid } = req.params;
+  const { userid } = req.params;
+  const entryIds = req.body;
 
-  const respondWithEntryId = () => res.status(200).json(entryid);
-  const respondWithEntriesId = () => res.status(200).json(JSON.parse(entryid));
+  const respondWithEntriesId = () => res.status(200).json(entryIds);
 
-  deleteEntryHandler(
-    entryid,
-    respondWithEntryId,
-    respondWithEntriesId,
-    catchError(res)
-  );
+  deleteEntryHandler(entryIds, respondWithEntriesId, catchError(res));
 };

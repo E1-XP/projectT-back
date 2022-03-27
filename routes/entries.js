@@ -5,8 +5,8 @@ router.get("/", entries.all);
 
 router.post("/", entries.new);
 
-router.put("/:entryid/", entries.update);
+router.put("/", entries.update);
 
-router.delete("/:entryid/", entries.delete);
+router.delete("/", entries.delete);
 
 module.exports = router;
