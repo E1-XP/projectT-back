@@ -42,7 +42,7 @@ exports.editUserDataHandler = function (
       if (username && username !== user.username) user.username = username;
       if (avatar === "") {
         user.avatar = avatar;
-        removeDir(__dirname + `/../public/uploads/` + userId);
+        removeDir(__dirname + `/../../public/uploads/` + userId);
       }
 
       user.settings = settings;
@@ -93,10 +93,10 @@ exports.uploadAvatarHandler = function (
   catchError
 ) {
   const form = new formidable.IncomingForm();
-  const dir = path.join(__dirname + `/../public/uploads/${userId}`);
+  const dir = path.join(__dirname + `/../../public/uploads/${userId}`);
 
   if (!fs.existsSync(dir)) {
-    fs.mkdirSync(__dirname + `/../public/uploads/${userId}`);
+    fs.mkdirSync(__dirname + `/../../public/uploads/${userId}`);
   }
 
   //remove previous avatars
@@ -114,7 +114,7 @@ exports.uploadAvatarHandler = function (
   form.parse(request);
 
   form.on("fileBegin", function (name, file) {
-    file.path = __dirname + `/../public/uploads/${userId}/${file.name}`;
+    file.path = __dirname + `/../../public/uploads/${userId}/${file.name}`;
   });
 
   form.on("file", function (name, file) {
@@ -146,7 +146,7 @@ exports.deleteAvatarHandler = function (
   respondWithNoUserFound,
   catchError
 ) {
-  fs.unlink(`${__dirname}/../public${avatarURL}`, (err) => {
+  fs.unlink(`${__dirname}/../../public${avatarURL}`, (err) => {
     if (err) {
       catchError(err);
     }
