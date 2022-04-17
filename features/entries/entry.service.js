@@ -2,7 +2,7 @@ const differenceInCalendarDays = require("date-fns/difference_in_calendar_days")
 const format = require("date-fns/format");
 const mongoose = require("mongoose");
 
-const db = require("../models");
+const db = require("../../models");
 
 exports.filterEntries = function (entriesArr, begin, end, dayCount = 10) {
   if (!begin && !end) return defaultFilter(entriesArr, dayCount);

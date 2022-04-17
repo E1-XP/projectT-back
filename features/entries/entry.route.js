@@ -1,5 +1,5 @@
 const router = require("express").Router({ mergeParams: true });
-const entries = require("../controllers/entries");
+const entries = require("./entry.controller");
 
 router.get("/", entries.all);
 

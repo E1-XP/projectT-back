@@ -12,5 +12,5 @@ mongoose.connect(URL, {
 });
 
 module.exports.URL = URL;
-module.exports.User = require("./user");
-module.exports.TimeEntry = require("./entry");
+module.exports.User = require("./features/user/user.model");
+module.exports.TimeEntry = require("./features/entries/entry.model");

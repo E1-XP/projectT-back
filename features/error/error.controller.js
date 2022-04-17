@@ -1,4 +1,4 @@
-const { errorHandler } = require("./../services/error");
+const { errorHandler } = require("./error.service");
 
 exports.catchError = (res) => (err) => {
   errorHandler(err);

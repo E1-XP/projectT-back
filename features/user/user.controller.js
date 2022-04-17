@@ -1,14 +1,14 @@
-const db = require("../models");
+const db = require("../../models");
 
-const errorHandler = require("./../services/error");
+const errorHandler = require("../error/error.service");
 const {
   getUserDataHandler,
   editUserDataHandler,
   editPasswordHandler,
   uploadAvatarHandler,
   deleteAvatarHandler,
-} = require("../services/user");
-const { catchError } = require("./helpers");
+} = require("./user.service");
+const { catchError } = require("../error/error.controller");
 
 exports.getUserData = function (req, res) {
   const _id = req.session.user || req.persistentSession.user;

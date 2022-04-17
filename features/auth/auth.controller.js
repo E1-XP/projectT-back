@@ -1,14 +1,14 @@
-const db = require("../models");
+const db = require("../../models");
 
 const {
   signUpHandler,
   loginHandler,
   refreshHandler,
-} = require("./../services/auth");
-const validateUser = require("./../services/validateUser");
-const { errorHandler } = require("./../services/error");
-const { getUserDataHandler } = require("../services/user");
-const { catchError } = require("./helpers");
+} = require("./auth.service");
+const validateUser = require("../validation/validation.service");
+const { errorHandler } = require("../error/error.service");
+const { getUserDataHandler } = require("../user/user.service");
+const { catchError } = require("../error/error.controller");
 
 exports.signup = function (req, res) {
   const { email, username, password } = req.body;

@@ -1,4 +1,4 @@
-const db = require("../models");
+const db = require("./models");
 
 exports.loginRequired = function (req, res, next) {
   if (req.session && req.session.user) {

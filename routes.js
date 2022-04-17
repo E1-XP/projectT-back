@@ -1,10 +1,10 @@
 const router = require("express").Router({ mergeParams: true });
-const middleware = require("../middleware");
+const middleware = require("./middleware");
 
-const authRoutes = require("./auth");
+const authRoutes = require("./features/auth/auth.route");
 const entriesRoutes = require("./entries");
-const projectsRoutes = require("./projects");
-const userRoutes = require("./user");
+const projectsRoutes = require("./features/projects/project.route");
+const userRoutes = require("./features/user/user.route");
 
 router.get("/", (req, res) => {
   res.json({ message: "welcome to projectT backend." });

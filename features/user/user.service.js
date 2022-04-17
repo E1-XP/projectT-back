@@ -3,11 +3,11 @@ const path = require("path");
 const formidable = require("formidable");
 const bcrypt = require("bcryptjs");
 
-const db = require("../models");
+const db = require("../../models");
 
-const { INSTANCE_URL } = require("./../config");
+const { INSTANCE_URL } = require("../../config");
 
-const { filterEntries } = require("./entries");
+const { filterEntries } = require("../entries/entry.service");
 
 exports.getUserDataHandler = function (
   userId,

@@ -1,10 +1,10 @@
-const db = require("../models");
+const db = require("./../../models");
 const {
   newProjectHandler,
   removeProjectHandler,
-} = require("../services/projects");
+} = require("./project.service");
 
-const { catchError } = require("./helpers");
+const { catchError } = require("../../features/error/error.controller");
 
 exports.new = function (req, res) {
   const { userid } = req.params;

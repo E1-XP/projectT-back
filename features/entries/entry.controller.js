@@ -1,12 +1,12 @@
-const db = require("../models");
+const db = require("../../models");
 
 const {
   getAllHandler,
   newEntryHandler,
   updateEntryHandler,
   deleteEntryHandler,
-} = require("../services/entries");
-const { catchError } = require("./helpers");
+} = require("./entry.service");
+const { catchError } = require("../error/error.controller");
 
 exports.all = function (req, res) {
   const { userid } = req.params;
