@@ -1,6 +1,6 @@
-const { errorHandler } = require("./error.service");
+import { errorHandler } from "./error.service.js";
 
-exports.catchError = (res) => (err) => {
+export const catchError = (res) => (err) => {
   errorHandler(err);
   res.status(500).json({ message: "internal server error" });
 };

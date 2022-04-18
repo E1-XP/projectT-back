@@ -1,14 +1,14 @@
-const db = require("../../models");
+import * as db from "../../models.js";
 
-const {
+import {
   getAllHandler,
   newEntryHandler,
   updateEntryHandler,
   deleteEntryHandler,
-} = require("./entry.service");
-const { catchError } = require("../error/error.controller");
+} from "./entry.service.js";
+import { catchError } from "../error/error.controller.js";
 
-exports.all = function (req, res) {
+export const all = function (req, res) {
   const { userid } = req.params;
   const { begin, end, days } = req.query;
 
@@ -27,7 +27,7 @@ exports.all = function (req, res) {
   );
 };
 
-exports.new = function (req, res) {
+export const newEntry = function (req, res) {
   const { userid } = req.params;
   const entry = Object.assign({}, req.body, { userId: userid }, req.query);
 
@@ -37,7 +37,7 @@ exports.new = function (req, res) {
   newEntryHandler(entry, userid, respondWithCreatedEntry, catchError(res));
 };
 
-exports.update = function (req, res) {
+export const updateEntry = function (req, res) {
   const entryData = req.body;
 
   const respondWithFoundEntries = (foundEntries) =>
@@ -46,7 +46,7 @@ exports.update = function (req, res) {
   updateEntryHandler(entryData, respondWithFoundEntries, catchError(res));
 };
 
-exports.delete = function (req, res) {
+export const deleteEntry = function (req, res) {
   const { userid } = req.params;
   const entryIds = req.body;
 

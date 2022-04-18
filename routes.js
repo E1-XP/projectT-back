@@ -1,10 +1,12 @@
-const router = require("express").Router({ mergeParams: true });
-const middleware = require("./middleware");
+import { Router } from "express";
+export const router = Router({ mergeParams: true });
 
-const authRoutes = require("./features/auth/auth.route");
-const entriesRoutes = require("./features/entries/entry.route");
-const projectsRoutes = require("./features/projects/project.route");
-const userRoutes = require("./features/user/user.route");
+import { loginRequired } from "./middleware.js";
+
+import authRoutes from "./features/auth/auth.route.js";
+import entriesRoutes from "./features/entries/entry.route.js";
+import projectsRoutes from "./features/projects/project.route.js";
+import userRoutes from "./features/user/user.route.js";
 
 router.get("/", (req, res) => {
   res.json({ message: "welcome to projectT backend." });
@@ -12,10 +14,8 @@ router.get("/", (req, res) => {
 
 router.use("/auth", authRoutes);
 
-router.use("/users/:userid", middleware.loginRequired, userRoutes);
+router.use("/users/:userid", loginRequired, userRoutes);
 
-router.use("/users/:userid/entries", middleware.loginRequired, entriesRoutes);
+router.use("/users/:userid/entries", loginRequired, entriesRoutes);
 
-router.use("/users/:userid/projects", middleware.loginRequired, projectsRoutes);
-
-module.exports = router;
+router.use("/users/:userid/projects", loginRequired, projectsRoutes);

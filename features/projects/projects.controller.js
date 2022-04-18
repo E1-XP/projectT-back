@@ -1,12 +1,9 @@
-const db = require("./../../models");
-const {
-  newProjectHandler,
-  removeProjectHandler,
-} = require("./project.service");
+import * as db from "./../../models.js";
+import { newProjectHandler, removeProjectHandler } from "./project.service.js";
 
-const { catchError } = require("../../features/error/error.controller");
+import { catchError } from "../../features/error/error.controller.js";
 
-exports.new = function (req, res) {
+export const newProject = function (req, res) {
   const { userid } = req.params;
   const { name, color, client } = req.query;
 
@@ -22,7 +19,7 @@ exports.new = function (req, res) {
   );
 };
 
-exports.remove = async function (req, res) {
+export const removeProject = async function (req, res) {
   const { userid } = req.params;
   const projectNamesArr = JSON.parse(req.query.name);
 

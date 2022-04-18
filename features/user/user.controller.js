@@ -1,16 +1,15 @@
-const db = require("../../models");
+import * as db from "../../models.js";
+import { catchError } from "../error/error.controller.js";
 
-const errorHandler = require("../error/error.service");
-const {
+import {
   getUserDataHandler,
   editUserDataHandler,
   editPasswordHandler,
   uploadAvatarHandler,
   deleteAvatarHandler,
-} = require("./user.service");
-const { catchError } = require("../error/error.controller");
+} from "./user.service.js";
 
-exports.getUserData = function (req, res) {
+export const getUserData = function (req, res) {
   const _id = req.session.user || req.persistentSession.user;
 
   const respondWithFilteredData = (filteredData) =>
@@ -19,7 +18,7 @@ exports.getUserData = function (req, res) {
   getUserDataHandler(_id, respondWithFilteredData, catchError);
 };
 
-exports.editUserData = function (req, res) {
+export const editUserData = function (req, res) {
   const { userid } = req.params;
   const { email, username, avatar, settings } = req.body;
 
@@ -36,7 +35,7 @@ exports.editUserData = function (req, res) {
   );
 };
 
-exports.editPassword = function (req, res) {
+export const editPassword = function (req, res) {
   const { userid } = req.params;
   const { current, newpass } = req.body;
 
@@ -61,7 +60,7 @@ exports.editPassword = function (req, res) {
   );
 };
 
-exports.uploadAvatar = function (req, res) {
+export const uploadAvatar = function (req, res) {
   const { userid } = req.params;
 
   const respondWithUserData = (data) => res.status(200).json(data);
@@ -69,7 +68,7 @@ exports.uploadAvatar = function (req, res) {
   uploadAvatarHandler(userid, req, respondWithUserData, catchError(res));
 };
 
-exports.deleteAvatar = function (req, res) {
+export const deleteAvatar = function (req, res) {
   const { userid } = req.params;
   const { avatarURL } = req.body;
 

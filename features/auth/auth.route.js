@@ -1,5 +1,7 @@
-const router = require("express").Router({ mergeParams: true });
-const auth = require("./auth.controller");
+import { Router } from "express";
+const router = Router({ mergeParams: true });
+
+import * as auth from "./auth.controller.js";
 
 router.post("/signup", auth.signup);
 
@@ -9,4 +11,4 @@ router.post("/logout", auth.logout);
 
 router.post("/refresh", auth.refresh);
 
-module.exports = router;
+export default router;

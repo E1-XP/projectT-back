@@ -1,8 +1,10 @@
-const router = require("express").Router({ mergeParams: true });
-const projects = require("./projects.controller");
+import { Router } from "express";
+const router = Router({ mergeParams: true });
 
-router.post("/", projects.new);
+import * as projects from "./projects.controller.js";
 
-router.delete("/", projects.remove);
+router.post("/", projects.newProject);
 
-module.exports = router;
+router.delete("/", projects.removeProject);
+
+export default router;

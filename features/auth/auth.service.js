@@ -1,7 +1,7 @@
-const db = require("../../models"),
-  bcrypt = require("bcryptjs");
+import * as db from "../../models.js";
+import bcrypt from "bcryptjs";
 
-exports.signUpHandler = function (
+export const signUpHandler = function (
   userData,
   setSessionVariable,
   respondWithData,
@@ -21,7 +21,7 @@ exports.signUpHandler = function (
     .catch((err) => catchError(err));
 };
 
-exports.loginHandler = function (
+export const loginHandler = function (
   email,
   password,
   userPasswordNotFoundResponse,
@@ -44,7 +44,7 @@ exports.loginHandler = function (
     .catch((err) => catchError(err));
 };
 
-exports.refreshHandler = function (
+export const refreshHandler = function (
   userId,
   userPasswordNotFoundResponse,
   getUserData,

@@ -1,29 +1,32 @@
-require("dotenv").config();
+import dotEnv from "dotenv";
+dotEnv.config();
 
-const express = require("express"),
-  app = express(),
-  session = require("express-session"),
-  MongoDBStore = require("connect-mongodb-session")(session),
-  bodyParser = require("body-parser"),
-  compression = require("compression"),
-  cors = require("cors"),
-  PORT = process.env.PORT || 3001;
+import express from "express";
+const app = express();
 
-const { ORIGIN_URL } = require("./config");
+import session from "express-session";
+import { default as connectMongoDBSession } from "connect-mongodb-session";
+const MongoDBStore = connectMongoDBSession(session);
 
-const db = require("./models");
-const routes = require("./routes");
-const { URL } = require("./models");
+import bodyParser from "body-parser";
+import compression from "compression";
+import cors from "cors";
+const PORT = process.env.PORT || 3001;
+
+import { config } from "./config/index.js";
+
+import * as db from "./models.js";
+import { router as routes } from "./routes.js";
 
 const store = new MongoDBStore({
-  uri: URL,
+  uri: db.URL,
   collection: "sessions",
 });
 
 app.use(bodyParser.json());
 app.use(
   cors({
-    origin: ORIGIN_URL,
+    origin: config.ORIGIN_URL,
     credentials: true,
   })
 );

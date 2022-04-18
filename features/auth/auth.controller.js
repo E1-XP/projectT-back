@@ -1,16 +1,12 @@
-const db = require("../../models");
+import * as db from "../../models.js";
 
-const {
-  signUpHandler,
-  loginHandler,
-  refreshHandler,
-} = require("./auth.service");
-const validateUser = require("../validation/validation.service");
-const { errorHandler } = require("../error/error.service");
-const { getUserDataHandler } = require("../user/user.service");
-const { catchError } = require("../error/error.controller");
+import { signUpHandler, loginHandler, refreshHandler } from "./auth.service.js";
+import { validateUser } from "../validation/validation.service.js";
+import { errorHandler } from "../error/error.service.js";
+import { getUserDataHandler } from "../user/user.service.js";
+import { catchError } from "../error/error.controller.js";
 
-exports.signup = function (req, res) {
+export const signup = function (req, res) {
   const { email, username, password } = req.body;
   const userData = { email, username, password };
 
@@ -35,7 +31,7 @@ exports.signup = function (req, res) {
   signUpHandler(userData, setSessionVariable, respondWithData, catchError);
 };
 
-exports.login = function (req, res) {
+export const login = function (req, res) {
   const { email, password } = req.body;
 
   if (!validateUser(req.body))
@@ -67,7 +63,7 @@ exports.login = function (req, res) {
   );
 };
 
-exports.logout = function (req, res) {
+export const logout = function (req, res) {
   if (req.session)
     req.session.destroy((err) => {
       if (err) {
@@ -76,7 +72,7 @@ exports.logout = function (req, res) {
     });
 };
 
-exports.refresh = function (req, res) {
+export const refresh = function (req, res) {
   if (req.session.user) {
     const id = req.session.user;
 

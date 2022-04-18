@@ -1,12 +1,14 @@
-const router = require("express").Router({ mergeParams: true });
-const entries = require("./entry.controller");
+import { Router } from "express";
+const router = Router({ mergeParams: true });
+
+import * as entries from "./entry.controller.js";
 
 router.get("/", entries.all);
 
-router.post("/", entries.new);
+router.post("/", entries.newEntry);
 
-router.put("/", entries.update);
+router.put("/", entries.updateEntry);
 
-router.delete("/", entries.delete);
+router.delete("/", entries.deleteEntry);
 
-module.exports = router;
+export default router;

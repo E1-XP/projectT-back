@@ -1,10 +1,10 @@
-const differenceInCalendarDays = require("date-fns/difference_in_calendar_days");
-const format = require("date-fns/format");
-const mongoose = require("mongoose");
+import differenceInCalendarDays from "date-fns/difference_in_calendar_days";
+import format from "date-fns/format";
+import mongoose from "mongoose";
 
-const db = require("../../models");
+import * as db from "../../models.js";
 
-exports.filterEntries = function (entriesArr, begin, end, dayCount = 10) {
+export const filterEntries = function (entriesArr, begin, end, dayCount = 10) {
   if (!begin && !end) return defaultFilter(entriesArr, dayCount);
 
   return noEndDateProvidedFilter(entriesArr, dayCount, begin); //10 next available days
@@ -63,7 +63,7 @@ function defaultFilter(entriesArr, maxPeriodLength) {
   return filtered;
 }
 
-exports.getAllHandler = function (
+export const getAllHandler = function (
   begin,
   end,
   days,
@@ -90,19 +90,14 @@ exports.getAllHandler = function (
       .sort({ start: "desc" })
       .then((foundEntries) =>
         respondWithFilteredEntries(
-          module.exports.filterEntries(
-            foundEntries,
-            num(begin),
-            num(end),
-            num(days)
-          )
+          filterEntries(foundEntries, num(begin), num(end), num(days))
         )
       )
       .catch((err) => catchError(err));
   }
 };
 
-exports.newEntryHandler = function (
+export const newEntryHandler = function (
   entry,
   userId,
   respondWithCreatedEntry,
@@ -122,7 +117,7 @@ exports.newEntryHandler = function (
     .catch((err) => catchError(err));
 };
 
-exports.updateEntryHandler = function (
+export const updateEntryHandler = function (
   entryData,
   respondWithFoundEntries,
   catchError
@@ -145,7 +140,7 @@ exports.updateEntryHandler = function (
     .catch((err) => catchError(err));
 };
 
-exports.deleteEntryHandler = function (
+export const deleteEntryHandler = function (
   entryId,
   respondWithEntriesId,
   catchError

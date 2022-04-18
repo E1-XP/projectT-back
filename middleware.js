@@ -1,6 +1,6 @@
-const db = require("./models");
+import * as db from "./models.js";
 
-exports.loginRequired = function (req, res, next) {
+export const loginRequired = function (req, res, next) {
   if (req.session && req.session.user) {
     next();
   } else res.status(401).json({ message: "authentication required" });

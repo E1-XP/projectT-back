@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from 'mongoose';
 
 const TimeEntrySchema = new mongoose.Schema({
   start: {
@@ -33,4 +33,4 @@ TimeEntrySchema.pre("remove", function (next) {
 });
 
 const TimeEntry = mongoose.model("TimeEntry", TimeEntrySchema);
-module.exports = TimeEntry;
+export default TimeEntry;

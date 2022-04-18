@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node app"
+    "start": "node --experimental-specifier-resolution=node app"
   },
   "author": "",
   "license": "ISC",
@@ -22,7 +22,5 @@
     "formidable": "^1.2.1",
     "mongoose": "^5.0.8"
   },
-  "engines": {
-    "node": "12.16.2"
-  }
+  "type": "module"
 }

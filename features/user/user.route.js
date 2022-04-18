@@ -1,5 +1,7 @@
-const router = require("express").Router({ mergeParams: true });
-const userRoutes = require("./user.controller");
+import { Router } from "express";
+const router = Router({ mergeParams: true });
+
+import * as userRoutes from "./user.controller.js";
 
 router.get("/", userRoutes.getUserData);
 
@@ -11,4 +13,4 @@ router.delete("/avatar", userRoutes.deleteAvatar);
 
 router.put("/password", userRoutes.editPassword);
 
-module.exports = router;
+export default router;

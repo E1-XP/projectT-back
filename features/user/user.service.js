@@ -1,15 +1,13 @@
-const fs = require("fs");
-const path = require("path");
-const formidable = require("formidable");
-const bcrypt = require("bcryptjs");
+import fs from "fs";
+import path from "path";
+import formidable from "formidable";
+import bcrypt from "bcryptjs";
 
-const db = require("../../models");
+import * as db from "../../models.js";
+import { config } from "../../config/index.js";
+import { filterEntries } from "../entries/entry.service.js";
 
-const { INSTANCE_URL } = require("../../config");
-
-const { filterEntries } = require("../entries/entry.service");
-
-exports.getUserDataHandler = function (
+export const getUserDataHandler = function (
   userId,
   respondWithFilteredData,
   catchError
@@ -27,7 +25,7 @@ exports.getUserDataHandler = function (
     .catch((err) => catchError(err));
 };
 
-exports.editUserDataHandler = function (
+export const editUserDataHandler = function (
   userId,
   email,
   username,
@@ -63,7 +61,7 @@ exports.editUserDataHandler = function (
     .catch((err) => catchError(err));
 };
 
-exports.editPasswordHandler = function (
+export const editPasswordHandler = function (
   userId,
   currentPass,
   newPass,
@@ -86,7 +84,7 @@ exports.editPasswordHandler = function (
     .catch((err) => catchError(err));
 };
 
-exports.uploadAvatarHandler = function (
+export const uploadAvatarHandler = function (
   userId,
   request,
   respondWithUserData,
@@ -120,7 +118,7 @@ exports.uploadAvatarHandler = function (
   form.on("file", function (name, file) {
     db.User.findById(userId)
       .then((user) => {
-        user.avatar = `${INSTANCE_URL}/uploads/${userId}/${file.name}`;
+        user.avatar = `${config.INSTANCE_URL}/uploads/${userId}/${file.name}`;
 
         user
           .save()
@@ -139,7 +137,7 @@ exports.uploadAvatarHandler = function (
   });
 };
 
-exports.deleteAvatarHandler = function (
+export const deleteAvatarHandler = function (
   userId,
   avatarURL,
   respondWithUserData,

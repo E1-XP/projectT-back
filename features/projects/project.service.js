@@ -1,6 +1,6 @@
-const db = require("../../models");
+import * as db from "../../models.js";
 
-exports.newProjectHandler = function (
+export const newProjectHandler = function (
   userId,
   name,
   color,
@@ -36,7 +36,7 @@ exports.newProjectHandler = function (
     .catch((err) => catchError(err));
 };
 
-exports.removeProjectHandler = function (
+export const removeProjectHandler = function (
   userId,
   projectNamesArr,
   respondWithUser,
