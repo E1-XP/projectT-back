@@ -19,7 +19,7 @@ import * as db from "./models.js";
 import { router as routes } from "./routes.js";
 
 const store = new MongoDBStore({
-  uri: db.URL,
+  uri: process.env.MONGO_URL,
   collection: "sessions",
 });
 
