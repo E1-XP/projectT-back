@@ -35,7 +35,7 @@ app.set("trust proxy", 1);
 
 app.use(
   session({
-    // cookieName: 'session',
+    name: "session",
     secret: process.env.SECRET_KEY,
     cookie: {
       // ephemeral: true,
@@ -50,7 +50,7 @@ app.use(
 );
 
 // app.use(session({
-//     cookieName: 'persistentSession',
+//     name: 'persistentSession',
 //     secret: process.env.SECRET_KEY,
 //     duration: 180 * 24 * 60 * 60 * 1000, //6months
 //     cookie: {
