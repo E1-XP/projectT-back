@@ -2,14 +2,16 @@
   "name": "projectt-back",
   "version": "1.0.0",
   "description": "",
-  "main": "app.js",
+  "main": "src/app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node --experimental-specifier-resolution=node app"
+    "start": "npm run build && nodemon dist/app.js",
+    "build": "babel src -d dist"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@babel/runtime-corejs3": "^7.17.9",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.2",
     "compression": "^1.7.2",
@@ -22,5 +24,12 @@
     "formidable": "^1.2.1",
     "mongoose": "^5.0.8"
   },
-  "type": "module"
+  "devDependencies": {
+    "@babel/cli": "^7.17.6",
+    "@babel/core": "^7.17.9",
+    "@babel/node": "^7.16.8",
+    "@babel/plugin-transform-runtime": "^7.17.0",
+    "@babel/preset-env": "^7.16.11",
+    "nodemon": "^2.0.15"
+  }
 }
