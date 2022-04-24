@@ -1,4 +1,3 @@
-import * as db from "../../models.js";
 import { catchError } from "../error/error.controller.js";
 
 import {
@@ -12,74 +11,58 @@ import {
 export const getUserData = function (req, res) {
   const _id = req.session.user || req.persistentSession.user;
 
-  const respondWithFilteredData = (filteredData) =>
-    res.status(200).json(filteredData);
+  const filteredData = getUserDataHandler(_id).catch(catchError(res));
 
-  getUserDataHandler(_id, respondWithFilteredData, catchError);
+  res.status(200).json(filteredData);
 };
 
 export const editUserData = function (req, res) {
   const { userid } = req.params;
   const { email, username, avatar, settings } = req.body;
 
-  const respondWithUserData = (data) => res.status(200).json(data);
-
-  editUserDataHandler(
+  const data = editUserDataHandler(
     userid,
     email,
     username,
     avatar,
-    settings,
-    respondWithUserData,
-    catchError(res)
-  );
+    settings
+  ).catch(catchError(res));
+
+  res.status(200).json(data);
 };
 
 export const editPassword = function (req, res) {
   const { userid } = req.params;
   const { current, newpass } = req.body;
 
-  const noUserOrPasswordFoundResponse = () =>
-    res.status(401).json({ result: false });
+  const user = editPasswordHandler(userid, current, newpass).catch((err) => {
+    if (err.code === 401) res.status(401).json({ result: false });
+    else catchError(res)(err);
+  });
 
-  const refreshSessionAndRespond = (user) => {
-    if (req.session) req.session.regenerate();
-    if (req.persistentSession) req.persistentSession.regenerate();
+  if (req.session) req.session.regenerate();
+  if (req.persistentSession) req.persistentSession.regenerate();
 
-    req.session.user = user._id;
-    res.status(200).json({ result: true });
-  };
-
-  editPasswordHandler(
-    userid,
-    current,
-    newpass,
-    noUserOrPasswordFoundResponse,
-    refreshSessionAndRespond,
-    catchError(res)
-  );
+  req.session.user = user._id;
+  res.status(200).json({ result: true });
 };
 
 export const uploadAvatar = function (req, res) {
   const { userid } = req.params;
 
-  const respondWithUserData = (data) => res.status(200).json(data);
+  const data = uploadAvatarHandler(userid, req).catch(catchError(res));
 
-  uploadAvatarHandler(userid, req, respondWithUserData, catchError(res));
+  res.status(200).json(data);
 };
 
 export const deleteAvatar = function (req, res) {
   const { userid } = req.params;
   const { avatarURL } = req.body;
 
-  const respondWithUserData = (data) => res.status(200).json(data);
-  const respondWithNoUserFound = () => res.status(403).json({ result: false });
+  const data = deleteAvatarHandler(userid, avatarURL).catch((err) => {
+    if (err.code === 403) return res.status(403).json({ result: false });
+    else return catchError(res)(err);
+  });
 
-  deleteAvatarHandler(
-    userid,
-    avatarURL,
-    respondWithUserData,
-    respondWithNoUserFound,
-    catchError(res)
-  );
+  res.status(200).json(data);
 };

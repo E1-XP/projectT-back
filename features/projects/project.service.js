@@ -1,88 +1,59 @@
 import * as db from "../../models.js";
 
-export const newProjectHandler = function (
-  userId,
-  name,
-  color,
-  client,
-  respondWithData,
-  catchError
-) {
-  db.User.findById(userId)
-    .then(function (user) {
-      const projects = user.projects.length ? user.projects.slice() : [];
+export const newProjectHandler = async function (userId, name, color, client) {
+  const user = await db.User.findById(userId);
 
-      projects.push({ name, color, client });
-      user.projects = projects;
+  const projects = user.projects.length ? user.projects.slice() : [];
 
-      user
-        .save()
-        .then(function () {
-          db.User.findById(userId)
-            .then((user) => {
-              const data = Object.keys(user._doc).reduce((acc, key) => {
-                key !== "password" && key !== "entries"
-                  ? (acc[key] = user._doc[key])
-                  : null;
-                return acc;
-              }, {});
+  projects.push({ name, color, client });
+  user.projects = projects;
 
-              respondWithData(data);
-            })
-            .catch((err) => catchError(err));
-        })
-        .catch((err) => catchError(err));
-    })
-    .catch((err) => catchError(err));
+  await user.save();
+
+  const userData = await db.User.findById(userId);
+
+  const filtered = Object.keys(userData._doc).reduce((acc, key) => {
+    key !== "password" && key !== "entries"
+      ? (acc[key] = userData._doc[key])
+      : null;
+    return acc;
+  }, {});
+
+  return filtered;
 };
 
-export const removeProjectHandler = function (
-  userId,
-  projectNamesArr,
-  respondWithUser,
-  catchError
-) {
-  db.User.findById(userId)
-    .then(function (user) {
-      const projects = user.projects.length ? user.projects.slice() : [];
-      user.projects = projects.filter(
-        (itm) => projectNamesArr.indexOf(itm.name) === -1
-      );
+export const removeProjectHandler = async function (userId, projectNamesArr) {
+  const user = await db.User.findById(userId);
 
-      user.save().then(function () {
-        //remove project field from entries
-        db.TimeEntry.find({ userId: user.id })
-          .then(async function (foundEntries) {
-            const toUpdate = foundEntries.filter(
-              (itm) => projectNamesArr.indexOf(itm.project) !== -1
-            );
+  const projects = user.projects.length ? user.projects.slice() : [];
 
-            const promiseArr = toUpdate.map(
-              (itm) =>
-                new Promise(function (resolve, reject) {
-                  db.TimeEntry.update(
-                    { _id: itm._id },
-                    { $set: { project: "" } }
-                  )
-                    .then((updated) => resolve(updated))
-                    .catch((err) => catchError(err));
-                })
-            );
+  user.projects = projects.filter(
+    (itm) => projectNamesArr.indexOf(itm.name) === -1
+  );
 
-            await Promise.all(promiseArr)
-              .then(function () {
-                db.User.findById(userId)
-                  .populate("entries")
-                  .exec((err, user) => {
-                    if (err) return catchError(err);
+  await user.save();
 
-                    respondWithUser(user);
-                  });
-              })
-              .catch((err) => catchError(err));
-          })
-          .catch((err) => catchError(err));
-      });
-    })
-    .catch((err) => catchError(err));
+  //remove project field from entries
+  const foundEntries = await db.TimeEntry.find({ userId: user.id });
+
+  const toUpdate = foundEntries.filter(
+    (itm) => projectNamesArr.indexOf(itm.project) !== -1
+  );
+
+  await Promise.all(
+    toUpdate.map(
+      async (itm) =>
+        await db.TimeEntry.update({ _id: itm._id }, { $set: { project: "" } })
+    )
+  );
+
+  await db.User.findById(userId)
+    .populate("entries")
+    .exec((err, user) => {
+      if (error) {
+        throw error;
+      }
+
+      return user;
+    });
 };

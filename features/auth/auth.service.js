@@ -1,61 +1,43 @@
-import * as db from "../../models.js";
+import * as db from "../../models";
 import bcrypt from "bcryptjs";
+import { getUserDataHandler } from "../user/user.service";
 
-export const signUpHandler = function (
-  userData,
-  setSessionVariable,
-  respondWithData,
-  catchError
-) {
-  db.User.create(userData)
-    .then((user) => {
-      setSessionVariable(user._id);
+export const signUpHandler = async function (userData) {
+  const user = await db.User.create(userData);
 
-      const data = Object.keys(user._doc).reduce((acc, key, i, arr) => {
-        key !== "password" ? (acc[key] = user._doc[key]) : null;
-        return acc;
-      }, {});
+  const data = Object.keys(user._doc).reduce((acc, key, i, arr) => {
+    key !== "password" ? (acc[key] = user._doc[key]) : null;
+    return acc;
+  }, {});
 
-      respondWithData(data);
-    })
-    .catch((err) => catchError(err));
+  return data;
 };
 
-export const loginHandler = function (
-  email,
-  password,
-  userPasswordNotFoundResponse,
-  setSessionVariable,
-  respondWithSuccess,
-  catchError
-) {
-  db.User.findOne({ email })
-    .then((user) => {
-      if (!user) {
-        userPasswordNotFoundResponse();
-      } else {
-        if (bcrypt.compareSync(password, user.password)) {
-          setSessionVariable(user._id);
+export const loginHandler = async function (email, password) {
+  const user = await db.User.findOne({ email });
 
-          respondWithSuccess(user);
-        } else userPasswordNotFoundResponse();
-      }
-    })
-    .catch((err) => catchError(err));
+  const throwError = () => {
+    const err = new Error("User/password combination not found");
+    err.code = 401;
+    throw err;
+  };
+
+  if (!user) throwError();
+  else {
+    if (bcrypt.compareSync(password, user.password)) {
+      return user;
+    } else throwError();
+  }
 };
 
-export const refreshHandler = function (
-  userId,
-  userPasswordNotFoundResponse,
-  getUserData,
-  respondWithFilteredData,
-  catchError
-) {
-  db.User.findById(userId)
-    .then(function (user) {
-      if (!user) userPasswordNotFoundResponse();
+export const refreshHandler = async function (userId) {
+  const user = await db.User.findById(userId);
 
-      getUserData(userId, respondWithFilteredData, catchError);
-    })
-    .catch((err) => catchError(err));
+  if (!user) {
+    const err = new Error("User/password combination not found");
+    err.code = 401;
+    throw err;
+  }
+
+  return getUserDataHandler(userId);
 };

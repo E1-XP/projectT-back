@@ -63,98 +63,62 @@ function defaultFilter(entriesArr, maxPeriodLength) {
   return filtered;
 }
 
-export const getAllHandler = function (
-  begin,
-  end,
-  days,
-  userid,
-  respondWithEntries,
-  respondWithFilteredEntries,
-  catchError
-) {
-  const num = (value) => (value ? Number(value) : value);
+export const getAllHandler = async function (begin, end, days, userId) {
+  const numOrUndef = (value) => (value ? Number(value) : value);
 
   if (begin && end) {
-    db.TimeEntry.find({
-      userId: userid,
+    const foundEntries = await db.TimeEntry.find({
+      userId,
       start: {
-        $lte: num(begin),
-        $gte: num(end),
+        $lte: numOrUndef(begin),
+        $gte: numOrUndef(end),
       },
-    })
-      .sort({ start: "desc" })
-      .then((foundEntries) => respondWithEntries(foundEntries))
-      .catch((err) => catchError(err));
+    }).sort({ start: "desc" });
+
+    return foundEntries;
   } else {
-    db.TimeEntry.find({ userId: userid })
-      .sort({ start: "desc" })
-      .then((foundEntries) =>
-        respondWithFilteredEntries(
-          filterEntries(foundEntries, num(begin), num(end), num(days))
-        )
-      )
-      .catch((err) => catchError(err));
+    const foundEntries = await db.TimeEntry.find({ userId }).sort({
+      start: "desc",
+    });
+
+    return filterEntries(
+      foundEntries,
+      numOrUndef(begin),
+      numOrUndef(end),
+      numOrUndef(days)
+    );
   }
 };
 
-export const newEntryHandler = function (
-  entry,
-  userId,
-  respondWithCreatedEntry,
-  catchError
-) {
-  db.TimeEntry.create(entry)
-    .then(function (createdEntry) {
-      db.User.findById(userId).then(function (user) {
-        user.entries.push(createdEntry.id);
+export const newEntryHandler = async function (entry, userId) {
+  const createdEntry = await db.TimeEntry.create(entry);
 
-        user
-          .save()
-          .then(() => respondWithCreatedEntry(createdEntry))
-          .catch((err) => catchError(err));
-      });
-    })
-    .catch((err) => catchError(err));
+  const user = await db.User.findById(userId);
+  user.entries.push(createdEntry.id);
+
+  await user.save();
+
+  return createdEntry;
 };
 
-export const updateEntryHandler = function (
-  entryData,
-  respondWithFoundEntries,
-  catchError
-) {
-  const updateData = entryData.map(
-    ({ _id, ...data }) =>
-      new Promise((resolve, reject) =>
-        db.TimeEntry.update({ _id }, { $set: data })
-          .then(() => resolve())
-          .catch((err) => catchError(err))
-      )
+export const updateEntryHandler = async function (entryData) {
+  await Promise.all(
+    entryData.map(
+      async ({ _id, ...data }) =>
+        await db.TimeEntry.update({ _id }, { $set: data })
+    )
   );
 
   const idArr = entryData.map(({ _id }) => new mongoose.Types.ObjectId(_id));
 
-  Promise.all(updateData)
-    .then(function () {
-      db.TimeEntry.find({ _id: { $in: idArr } }).then(respondWithFoundEntries);
-    })
-    .catch((err) => catchError(err));
+  const foundEntries = await db.TimeEntry.find({ _id: { $in: idArr } });
+  return foundEntries;
 };
 
-export const deleteEntryHandler = function (
-  entryId,
-  respondWithEntriesId,
-  catchError
-) {
-  const prArr = entryId.map(
-    (id) =>
-      new Promise((resolve, reject) =>
-        db.TimeEntry.findByIdAndRemove(id)
-          .then((id) => resolve())
-          .catch((err) => catchError(err))
-      )
+export const deleteEntryHandler = async function (entryId) {
+  await Promise.all(
+    entryId.map(async (id) => await db.TimeEntry.findByIdAndRemove(id))
   );
 
-  Promise.all(prArr)
-    .then(() => respondWithEntriesId())
-    .catch((err) => catchError(err));
+  return entryId;
 };

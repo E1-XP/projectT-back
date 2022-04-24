@@ -6,90 +6,68 @@ import bcrypt from "bcryptjs";
 import * as db from "../../models.js";
 import { config } from "../../config/index.js";
 import { filterEntries } from "../entries/entry.service.js";
+import { throwError } from "../error/error.service.js";
 
-export const getUserDataHandler = function (
-  userId,
-  respondWithFilteredData,
-  catchError
-) {
-  db.User.findOne({ _id: userId })
-    .then((user) => {
-      populateEntries(user)
-        .then((data) => {
-          data.entries = filterEntries(data.entries);
-          return data;
-        })
-        .then((data) => respondWithFilteredData(data))
-        .catch((err) => catchError(err));
-    })
-    .catch((err) => catchError(err));
+export const getUserDataHandler = async function (userId) {
+  const user = await db.User.findOne({ _id: userId });
+
+  const data = await populateEntries(user);
+  data.entries = filterEntries(data.entries);
+
+  return data;
 };
 
-export const editUserDataHandler = function (
+export const editUserDataHandler = async function (
   userId,
   email,
   username,
   avatar,
-  settings,
-  respondWithUserData,
-  catchError
+  settings
 ) {
-  db.User.findById(userId)
-    .then((user) => {
-      if (email && email !== user.email) user.email = email;
-      if (username && username !== user.username) user.username = username;
-      if (avatar === "") {
-        user.avatar = avatar;
-        removeDir(__dirname + `/../../public/uploads/` + userId);
-      }
+  const user = await db.User.findById(userId);
 
-      user.settings = settings;
+  if (email && email !== user.email) user.email = email;
+  if (username && username !== user.username) user.username = username;
+  if (avatar === "") {
+    user.avatar = avatar;
+    removeDir(__dirname + `/../../public/uploads/` + userId);
+  }
 
-      user
-        .save()
-        .then(() => {
-          const userObj = {};
+  user.settings = settings;
 
-          for (key in user._doc) {
-            if (key !== "password" && key !== "entries")
-              userObj[key] = user._doc[key];
-          }
-          respondWithUserData(userObj);
-        })
-        .catch((err) => catchError(err));
-    })
-    .catch((err) => catchError(err));
+  await user.save();
+
+  const userObj = {};
+
+  for (key in user._doc) {
+    if (key !== "password" && key !== "entries") userObj[key] = user._doc[key];
+  }
+  return userObj;
 };
 
-export const editPasswordHandler = function (
+export const editPasswordHandler = async function (
   userId,
   currentPass,
-  newPass,
-  noUserOrPasswordFoundResponse,
-  refreshSessionAndRespond,
-  catchError
+  newPass
 ) {
-  db.User.findById(userId)
-    .then((user) => {
-      if (!user) return noUserOrPasswordFoundResponse();
-      else if (bcrypt.compareSync(currentPass, user.password)) {
-        user.password = newPass;
+  const user = await db.User.findById(userId);
 
-        user
-          .save()
-          .then(() => refreshSessionAndRespond(user))
-          .catch((err) => catchError(err));
-      } else noUserOrPasswordFoundResponse();
-    })
-    .catch((err) => catchError(err));
+  const throwError = () => {
+    const err = new Error("User/password combination not found");
+    err.code = 401;
+    throw err;
+  };
+
+  if (!user) throwError();
+  else if (bcrypt.compareSync(currentPass, user.password)) {
+    user.password = newPass;
+
+    await user.save();
+    return user;
+  } else throwError();
 };
 
-export const uploadAvatarHandler = function (
-  userId,
-  request,
-  respondWithUserData,
-  catchError
-) {
+export const uploadAvatarHandler = async function (userId, request) {
   const form = new formidable.IncomingForm();
   const dir = path.join(__dirname + `/../../public/uploads/${userId}`);
 
@@ -99,12 +77,12 @@ export const uploadAvatarHandler = function (
 
   //remove previous avatars
   fs.readdir(dir, (err, files) => {
-    if (err) console.log(err);
+    if (err) throwError(err.message, 500);
 
     if (files)
       for (const file of files) {
         fs.unlink(path.join(dir, file), (err) => {
-          if (err) catchError(err);
+          if (err) throwError(err.message, 500);
         });
       }
   });
@@ -115,78 +93,59 @@ export const uploadAvatarHandler = function (
     file.path = __dirname + `/../../public/uploads/${userId}/${file.name}`;
   });
 
-  form.on("file", function (name, file) {
-    db.User.findById(userId)
-      .then((user) => {
-        user.avatar = `${config.INSTANCE_URL}/uploads/${userId}/${file.name}`;
+  form.on("file", async function (name, file) {
+    const user = db.User.findById(userId);
 
-        user
-          .save()
-          .then(() => {
-            const userObj = {};
+    user.avatar = `${config.INSTANCE_URL}/uploads/${userId}/${file.name}`;
 
-            for (key in user._doc) {
-              if (key !== "password" && key !== "entries")
-                userObj[key] = user._doc[key];
-            }
-            respondWithUserData(userObj);
-          })
-          .catch((err) => catchError(err));
-      })
-      .catch((err) => catchError(err));
-  });
-};
+    await user.save();
 
-export const deleteAvatarHandler = function (
-  userId,
-  avatarURL,
-  respondWithUserData,
-  respondWithNoUserFound,
-  catchError
-) {
-  fs.unlink(`${__dirname}/../../public${avatarURL}`, (err) => {
-    if (err) {
-      catchError(err);
+    const userObj = {};
+
+    for (key in user._doc) {
+      if (key !== "password" && key !== "entries")
+        userObj[key] = user._doc[key];
     }
 
-    db.User.findById(userId)
-      .then((user) => {
-        if (!user) return respondWithNoUserFound();
-
-        user.avatar = "";
-
-        user
-          .save()
-          .then(() => {
-            const userObj = {};
-
-            for (key in user._doc) {
-              if (key !== "password" && key !== "entries")
-                userObj[key] = user._doc[key];
-            }
-            respondWithUserData(userObj);
-          })
-          .catch((err) => catchError(err));
-      })
-      .catch((err) => catchError(err));
+    return userObj;
   });
 };
 
-function populateEntries(user) {
-  return new Promise(function (resolve, reject) {
-    db.TimeEntry.find({ userId: user._id })
-      .sort({ start: "desc" })
-      .then((foundEntries) => {
-        user.entries = foundEntries;
+export const deleteAvatarHandler = async function (userId, avatarURL) {
+  fs.unlink(`${__dirname}/../../public${avatarURL}`, async (err) => {
+    if (err) throwError(err.message, 500);
 
-        const data = Object.keys(user._doc).reduce((acc, key) => {
-          if (key !== "password") acc[key] = user._doc[key];
-          return acc;
-        }, {});
+    const user = await db.User.findById(userId);
 
-        resolve(data);
-      });
+    if (!user) return throwError(err.message, 403);
+
+    user.avatar = "";
+
+    await user.save();
+
+    const userObj = {};
+
+    for (key in user._doc) {
+      if (key !== "password" && key !== "entries")
+        userObj[key] = user._doc[key];
+    }
+
+    return userObj;
   });
+};
+
+async function populateEntries(user) {
+  const foundEntries = await db.TimeEntry.find({ userId: user._id }).sort({
+    start: "desc",
+  });
+  user.entries = foundEntries;
+
+  const data = Object.keys(user._doc).reduce((acc, key) => {
+    if (key !== "password") acc[key] = user._doc[key];
+    return acc;
+  }, {});
+
+  return data;
 }
 
 function removeDir(dirPath) {

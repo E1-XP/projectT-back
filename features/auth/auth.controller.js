@@ -2,7 +2,6 @@ import * as db from "../../models.js";
 
 import { signUpHandler, loginHandler, refreshHandler } from "./auth.service.js";
 import { validateUser } from "../validation/validation.service.js";
-import { errorHandler } from "../error/error.service.js";
 import { getUserDataHandler } from "../user/user.service.js";
 import { catchError } from "../error/error.controller.js";
 
@@ -15,20 +14,17 @@ export const signup = function (req, res) {
       message: "invalid data provided",
     });
 
-  const setSessionVariable = (data) => (req.session.user = data);
-  const respondWithData = (data) => res.status(200).json(data);
-
-  const catchError = (err) => {
-    errorHandler(err);
-
+  const data = signUpHandler(userData).catch((err) => {
     if (err.code === 11000)
-      res.status(409).json({
+      return res.status(409).json({
         message: "user with same email or/and username already exist",
       });
-    else res.status(500).json({ message: "internal server error" });
-  };
+    else return catchError(res)(err);
+  });
 
-  signUpHandler(userData, setSessionVariable, respondWithData, catchError);
+  req.session.user = data._id;
+
+  res.status(200).json(data);
 };
 
 export const login = function (req, res) {
@@ -39,28 +35,20 @@ export const login = function (req, res) {
       message: "invalid data provided",
     });
 
-  const userPasswordNotFoundResponse = () =>
-    res.status(401).json({
-      message: "user/password combination not found",
-    });
+  const userData = loginHandler(email, password).catch((err) => {
+    if (err.code === 401) {
+      return res.status(401).json({
+        message: "User/password combination not found",
+      });
+    } else return catchError(res)(err);
+  });
 
-  const setSessionVariable = (data) => (req.session.user = data);
+  req.session.user = userData._id;
 
-  const respondWithSuccess = (user) => {
-    res.status(200).json({
-      message: "success",
-      userId: user._id,
-    });
-  };
-
-  loginHandler(
-    email,
-    password,
-    userPasswordNotFoundResponse,
-    setSessionVariable,
-    respondWithSuccess,
-    catchError(res)
-  );
+  res.status(200).json({
+    message: "success",
+    userId: userData._id,
+  });
 };
 
 export const logout = function (req, res) {
@@ -73,24 +61,20 @@ export const logout = function (req, res) {
 };
 
 export const refresh = function (req, res) {
+  const userPasswordNotFoundResponse = () =>
+    res.status(401).json({
+      message: "user/password combination not found",
+    });
+
   if (req.session.user) {
     const id = req.session.user;
 
-    const userPasswordNotFoundResponse = () =>
-      res.status(401).json({
-        message: "user/password combination not found",
-      });
+    const data = refreshHandler(id).catch((err) => {
+      if (err.code === 401) {
+        return userPasswordNotFoundResponse();
+      }
+    });
 
-    const respondWithFilteredData = (filteredData) =>
-      res.status(200).json(filteredData);
-
-    refreshHandler(
-      id,
-      userPasswordNotFoundResponse,
-      getUserDataHandler,
-      respondWithFilteredData,
-      catchError(res)
-    );
-  } else
-    res.status(401).json({ message: "user/password combination not found" });
+    res.status(200).json(data);
+  } else userPasswordNotFoundResponse();
 };
