@@ -1,4 +1,4 @@
 export const config = {
-  ORIGIN_URL: ["http://localhost:8080", "https://project-t-v2.netlify.app"],
-  INSTANCE_URL: "https://project-t.gtxcodeworks.site",
+  ORIGIN_URL: [process.env.ORIGIN_URL_LOCAL, process.env.ORIGIN_URL],
+  INSTANCE_URL: process.env.INSTANCE_URL,
 };
