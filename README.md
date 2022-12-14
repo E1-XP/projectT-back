@@ -8,7 +8,7 @@ Simple backend for my client side application.
 
 ## Demo
 
-https://project-t.gtxcodeworks.site/
+https://project-t.gtxcodeworks.online/
 ## Tech Stack
 
 - Node.js
